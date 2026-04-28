@@ -1,9 +1,14 @@
 // ==========================================
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
+// Credenciales actualizadas y truco para trabajar sin servidor local (file://)
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmaGhscXl4ZWtya2N6YXd6Z3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTk4ODUsImV4cCI6MjA5MjI5NTg4NX0.Aioc97TxOALEoNKRGOsNxRAY0auoIeMeMzChf9cd-tc'; 
-const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
+
+// Al añadir persistSession: false, el navegador permite la conexión desde un archivo local
+const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false }
+});
 
 let inventarioNube = [];
 let rutaActual = 'inicio';
@@ -15,7 +20,7 @@ let criterioOrden = 'nuevo';
 let sessionActiva = false;
 let usuarioId = null;
 let favoritosNube = []; 
-let carrito = [];
+let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || []; // Restaurada persistencia del carrito
 
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
@@ -99,9 +104,17 @@ function actualizarEtiquetasFiltros() {
     const contenedor = document.getElementById('etiquetas-filtros-activos');
     if (!contenedor) return;
     let html = '';
-    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
-    if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
-    if (busquedaActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('busqueda')" title="Quitar este filtro">Marca: ${busquedaActual} ✖</div>`;
+    
+    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') {
+        html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
+    }
+    
+    if (filtroActual !== 'todos') {
+        html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
+    }
+    
+    // Hemos eliminado la línea que generaba la etiqueta de busquedaActual
+    
     contenedor.innerHTML = html;
 }
 
@@ -132,7 +145,7 @@ window.quitarFiltro = (tipo) => {
 }
 
 // ==========================================
-// 4. EL RENDERIZADOR PRINCIPAL (DISEÑO ANTIGUO + CARRITO)
+// 4. EL RENDERIZADOR PRINCIPAL
 // ==========================================
 function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
@@ -145,7 +158,6 @@ function renderizarVista() {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
-        // Búsqueda segura
         let textoBusqueda = ((p.titulo||'') + (p.marca||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
         return r && f && b;
@@ -370,6 +382,7 @@ window.añadirAlCarrito = (ref, e) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
     carrito.push(p);
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Guardar en local para que no se borre
     actualizarInterfazCarrito();
     const cont = document.getElementById('contenedor-carrito-nav');
     if(cont) { cont.style.transform = 'scale(1.3)'; setTimeout(() => cont.style.transform = 'scale(1)', 200); }
@@ -404,7 +417,11 @@ function actualizarInterfazCarrito() {
     if(totalTxt) totalTxt.innerText = sumaTotal.toFixed(2) + '€';
 }
 
-window.eliminarDelCarrito = (index) => { carrito.splice(index, 1); actualizarInterfazCarrito(); }
+window.eliminarDelCarrito = (index) => { 
+    carrito.splice(index, 1); 
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Actualizar local
+    actualizarInterfazCarrito(); 
+}
 
 window.comprobarCheckout = () => {
     if (carrito.length === 0) return alert("⚠️ La cesta está vacía.");
