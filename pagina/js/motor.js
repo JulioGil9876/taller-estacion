@@ -1,13 +1,12 @@
 // ==========================================
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
-// Credenciales actualizadas y truco para trabajar sin servidor local (file://)
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
 const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
 
-// Al añadir persistSession: false, el navegador permite la conexión desde un archivo local
+// CAMBIO CLAVE: Ahora ponemos persistSession en TRUE
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false }
+    auth: { persistSession: true } 
 });
 
 let inventarioNube = [];
@@ -20,7 +19,7 @@ let criterioOrden = 'nuevo';
 let sessionActiva = false;
 let usuarioId = null;
 let favoritosNube = []; 
-let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || []; // Restaurada persistencia del carrito
+let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || []; 
 
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
@@ -47,7 +46,6 @@ async function cargarPiezasDesdeLaNube() {
             if (p) window.abrirModal(p.referencia);
         }
         
-        // Comprueba si venimos buscando los favoritos
         if (parametrosUrl.get('vista') === 'favoritos') {
             setTimeout(() => verFavoritos(), 300);
         } else {
@@ -104,17 +102,8 @@ function actualizarEtiquetasFiltros() {
     const contenedor = document.getElementById('etiquetas-filtros-activos');
     if (!contenedor) return;
     let html = '';
-    
-    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') {
-        html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
-    }
-    
-    if (filtroActual !== 'todos') {
-        html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
-    }
-    
-    // Hemos eliminado la línea que generaba la etiqueta de busquedaActual
-    
+    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
+    if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
     contenedor.innerHTML = html;
 }
 
@@ -382,7 +371,7 @@ window.añadirAlCarrito = (ref, e) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
     carrito.push(p);
-    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Guardar en local para que no se borre
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); 
     actualizarInterfazCarrito();
     const cont = document.getElementById('contenedor-carrito-nav');
     if(cont) { cont.style.transform = 'scale(1.3)'; setTimeout(() => cont.style.transform = 'scale(1)', 200); }
@@ -419,7 +408,7 @@ function actualizarInterfazCarrito() {
 
 window.eliminarDelCarrito = (index) => { 
     carrito.splice(index, 1); 
-    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Actualizar local
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); 
     actualizarInterfazCarrito(); 
 }
 
@@ -464,6 +453,10 @@ window.cambiarModoAuth = () => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. CARGA INICIAL DEL CARRITO 
+    actualizarInterfazCarrito();
+
+    // 2. VALIDACIÓN Y DETECCIÓN DE "ENTER" EN LOGIN
     const inputPass = document.getElementById('pass-login');
     if(inputPass) {
         inputPass.addEventListener('input', (e) => {
@@ -471,6 +464,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const rLon = document.getElementById('regla-longitud'); const rNum = document.getElementById('regla-numero');
             if(rLon) { rLon.innerHTML = tieneLong ? '✅ Mínimo 6 caracteres' : '❌ Mínimo 6 caracteres'; rLon.style.color = tieneLong ? '#27ae60' : '#e74c3c'; }
             if(rNum) { rNum.innerHTML = tieneNum ? '✅ Debe contener un número' : '❌ Debe contener un número'; rNum.style.color = tieneNum ? '#27ae60' : '#e74c3c'; }
+        });
+
+        // Pulsar Enter para hacer login
+        inputPass.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                procesarAuth();
+            }
         });
     }
 });
@@ -512,7 +512,7 @@ function mostrarMensajeAuth(texto, color) {
     if(div) { div.innerText = texto; div.style.display = 'block'; div.style.backgroundColor = color + "22"; div.style.color = color; }
 }
 
-window.cerrarSesion = async () => { await clienteSupabase.auth.signOut(); location.reload(); }
+window.cerrarSesion = async () => { await clienteSupabase.auth.signOut(); window.location.href = 'index.html'; }
 
 // ==========================================
 // 9. EVENTOS GENERALES (EL CEREBRO CENTRAL)
@@ -527,8 +527,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data } = await clienteSupabase.from('favoritos').select('producto_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.producto_ref);
             btnU.forEach(btn => {
-                btn.innerHTML = `✅ ${session.user.email.split('@')[0].toUpperCase()} <span style="font-size:0.8em; opacity:0.6;">(Salir)</span>`;
-                btn.onclick = cerrarSesion; btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
+                btn.innerHTML = `⚙️ Mi Perfil`; // ASPECTO PRO
+                btn.onclick = () => window.location.href = 'perfil.html'; // REDIRIGE AL PERFIL
+                btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
             });
             renderizarVista();
         } else {
@@ -537,13 +538,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f";
             });
             renderizarVista();
+            // Si intenta entrar al perfil sin loguearse, lo echamos
+            if (window.location.pathname.includes('perfil.html')) {
+                window.location.href = 'index.html';
+            }
         }
     });
 
-    // Cargar piezas
     cargarPiezasDesdeLaNube();
 
-    // Filtros de móvil
     const btnFiltros = document.getElementById('btn-toggle-filtros');
     const sidebar = document.querySelector('.sidebar-filtros');
     if (btnFiltros && sidebar) {
@@ -554,7 +557,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Rutas (Menú lateral)
     document.querySelectorAll('.btn-ruta-v').forEach(boton => {
         boton.addEventListener('click', (e) => {
             document.querySelectorAll('.btn-ruta-v').forEach(b => { b.style.background = 'white'; b.style.color = 'black'; b.style.borderColor = '#ddd'; });

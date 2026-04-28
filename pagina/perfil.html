@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel | Taller La Estación</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .menu-perfil {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+        .menu-perfil a {
+            display: block;
+            padding: 15px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px solid #f1f2f6;
+            transition: 0.3s;
+        }
+        .menu-perfil a:hover { color: #e74c3c; padding-left: 20px; }
+        .contenido-perfil {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 40px;
+            border: 1px solid #eee;
+        }
+        @media (max-width: 768px) {
+            .panel-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body style="background: #f8f9fa;">
+
+    <header class="cabecera">
+        <div class="logo">
+            <h2 style="margin: 0;"><a href="index.html" style="text-decoration: none; color: inherit;">Taller <span style="color: #e74c3c;">La Estación</span></a></h2>
+        </div>
+        <nav class="menu">
+            <a href="index.html" style="font-weight: bold; color: #2c3e50; text-decoration: none;">🏠 Volver a Inicio</a>
+            <a href="recambios.html" style="font-weight: bold; color: #e74c3c; text-decoration: none;">📦 Catálogo</a>
+        </nav>
+    </header>
+
+    <div class="panel-grid">
+        <aside class="menu-perfil">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 80px; height: 80px; background: #e74c3c; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; font-weight: bold; margin: 0 auto 10px;">👤</div>
+                <h3 style="color: #2c3e50; margin:0;">Mi Perfil</h3>
+            </div>
+            
+            <a href="#">📝 Mis Datos Personales</a>
+            <a href="#">📦 Historial de Pedidos</a>
+            <a href="recambios.html?vista=favoritos">❤️ Mis Favoritos</a>
+            <a href="#" style="color: #aaa;">⚙️ Ajustes</a>
+            <br>
+            <button onclick="cerrarSesion()" class="btn-rojo" style="width: 100%; padding: 12px; background: #fdf2f2; color: #e74c3c !important; border: 1px solid #fadbd8; box-shadow: none;">🚪 Cerrar Sesión Segura</button>
+        </aside>
+
+        <main class="contenido-perfil">
+            <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Panel de Control</h2>
+            <p style="color: #636e72; font-size: 1.1em;">¡Hola! Desde aquí podrás gestionar toda la información relacionada con tus pedidos y piezas de Taller La Estación.</p>
+            
+            <div style="background: #e3fcf7; padding: 20px; border-radius: 8px; border-left: 4px solid #00b894; margin-top: 30px;">
+                <h4 style="color: #00b894; margin-top: 0;">✅ Sesión verificada</h4>
+                <p style="margin: 0; color: #2d3436; font-size: 0.9em;">Tu conexión es segura y estás listo para navegar por el catálogo.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/motor.js"></script>
+</body>
+</html>
