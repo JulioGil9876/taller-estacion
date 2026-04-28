@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Recambios | Taller La Estación</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @media (max-width: 768px) {
+            .controles-superiores { flex-direction: column; gap: 10px !important; }
+            .buscador-global, .ordenador-global, #ordenar-por { width: 100% !important; }
+            #btn-toggle-filtros { display: block !important; margin-bottom: 20px; }
+            .sidebar-filtros { display: none; width: 100% !important; position: relative !important; top: 0 !important; }
+            .sidebar-filtros.abierta { display: block !important; margin-bottom: 30px; }
+            .contenedor-principal-catalogo { flex-direction: column; gap: 0 !important; }
+        }
+        .btn-ruta-v:hover { border-color: #e74c3c !important; color: #e74c3c !important; }
+        #input-busqueda:focus { border-color: #e74c3c !important; box-shadow: 0 0 8px rgba(231, 76, 60, 0.2) !important; }
+    </style>
+</head>
+<body>
+
+    <header class="cabecera">
+        <div class="logo">
+            <h2 style="margin: 0; color: #2c3e50; font-size: 1.5em;">Taller <span style="color: #e74c3c;">La Estación</span></h2>
+        </div>
+        <nav class="menu">
+            <a href="index.html" style="font-weight: bold; color: #2c3e50; text-decoration: none;">🏠 Volver a Inicio</a>
+            <span style="font-weight: bold; color: #e74c3c; padding: 10px;">📦 Catálogo</span>
+            
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                <button onclick="verFavoritos()" style="background: transparent; color: #e74c3c; border: 2px solid #e74c3c; padding: 8px 15px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">❤️ Favoritos</button>
+                
+                <button onclick="abrirLogin()" id="btn-usuario-nav" style="background: transparent; color: #1a252f; border: 2px solid #1a252f; padding: 8px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">👤 Mi Cuenta</button>
+
+                <div id="contenedor-carrito-nav" onclick="abrirPanelCarrito()" style="position: relative; cursor: pointer; display: flex; align-items: center; background: #f8f9fa; padding: 5px 10px; border-radius: 20px; border: 1px solid #eee;">
+                    <span style="font-size: 1.3em;">🛒</span>
+                    <span id="contador-carrito" style="position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75em; font-weight: 900; display: none;">0</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="seccion-recambios" style="padding: 20px; max-width: 1300px; margin: 0 auto; min-height: 70vh;">
+        
+        <div class="titulo-seccion" style="text-align: center; margin-bottom: 20px;">
+            <h2 id="titulo-ruta" style="font-size: 1.8em; color: #2c3e50;">Catálogo General</h2>
+        </div>
+
+        <button id="btn-toggle-filtros" style="background: #2c3e50; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; display: none; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            ⚙️ Mostrar Filtros de búsqueda
+        </button>
+
+        <div class="contenedor-principal-catalogo" style="display: flex; gap: 30px; align-items: flex-start;">
+            
+            <aside class="sidebar-filtros" style="width: 260px; flex-shrink: 0; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                
+                <div class="bloque-filtro">
+                    <h4 style="margin-bottom: 15px; color: #333; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; font-weight: 800;">Secciones</h4>
+                    <div class="controles-rutas-vertical">
+                        <button class="btn-ruta-v activo" data-ruta="inicio" style="display: block; width: 100%; text-align: left; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; background: white; font-weight: bold; transition: 0.2s;">📦 Todo el Almacén</button>
+                        <button class="btn-ruta-v" data-ruta="motor" style="display: block; width: 100%; text-align: left; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; background: white; font-weight: bold; transition: 0.2s;">Motor</button>
+                        <button class="btn-ruta-v" data-ruta="frenos" style="display: block; width: 100%; text-align: left; padding: 12px 15px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; background: white; font-weight: bold; transition: 0.2s;">Frenos</button>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #f1f1f1;">
+
+                <div class="bloque-filtro" id="bloque-subfiltros" style="display: none;">
+                    <h4 style="margin-bottom: 15px; color: #333; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; font-weight: 800;">Tipo de Pieza</h4>
+                    <div id="contenedor-subfiltros-dinamicos" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #f1f1f1;">
+                </div>
+
+                <div class="bloque-filtro">
+                    <h4 style="margin-bottom: 15px; color: #333; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; font-weight: 800;">Marcas</h4>
+                    <div id="contenedor-marcas-dinamicas" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <p style="color: #999; font-size: 0.85em;">Cargando...</p>
+                    </div>
+                </div>
+
+            </aside>
+
+            <main class="contenido-derecha" style="flex-grow: 1; width: 100%;">
+                
+                <div class="controles-superiores" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
+                    <div class="buscador-global" style="flex-grow: 1;">
+                        <input type="text" id="input-busqueda" placeholder="🔍 Buscar por nombre, ref o coche..." 
+                               style="width: 100%; padding: 14px; font-size: 1em; border-radius: 10px; border: 1px solid #ddd; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02); box-sizing: border-box;">
+                    </div>
+                    
+                    <div class="ordenador-global">
+                        <select id="ordenar-por" style="padding: 14px; font-size: 0.95em; border-radius: 10px; border: 1px solid #ddd; background-color: #fff; cursor: pointer; outline: none; color: #333; font-weight: 600;">
+                            <option value="nuevo">✨ Novedades</option>
+                            <option value="barato">📉 Precio: Menor</option>
+                            <option value="caro">📈 Precio: Mayor</option>
+                            <option value="nombre">🔤 Nombre A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="etiquetas-filtros-activos" style="margin-bottom: 15px;"></div>
+
+                <div id="almacen-piezas" class="grid-recambios"></div>
+
+                <div id="paginacion-contenedor" style="margin-top: 40px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;"></div>
+            </main>          
+
+        </div>
+    </section>
+
+    <footer class="pie-pagina" style="margin-top: 50px; background: #1a252f; color: white; padding: 30px; text-align: center;">
+        <p style="opacity: 0.7; font-size: 0.9em;">© 2026 Taller La Estación. Lorquí, Murcia.</p>
+    </footer>
+
+    <div id="modal-producto" class="modal-overlay">
+        <div class="modal-box">
+            <span class="btn-cerrar-modal" onclick="cerrarModal()" style="position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; z-index: 10;">&times;</span>
+            <div id="modal-contenido-dinamico"></div>
+        </div>
+    </div>
+
+    <div id="panel-carrito" style="position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: white; z-index: 3000; box-shadow: -5px 0 30px rgba(0,0,0,0.2); transition: 0.4s; display: flex; flex-direction: column;">
+        <div style="padding: 25px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">Tu Cesta 📦</h3>
+            <span onclick="cerrarPanelCarrito()" style="cursor: pointer; font-size: 1.5em;">&times;</span>
+        </div>
+        <div id="lista-carrito" style="flex-grow: 1; overflow-y: auto; padding: 20px;">
+            <p style="text-align: center; color: #aaa; margin-top: 50px;">Tu cesta está vacía...</p>
+        </div>
+        <div id="footer-carrito" style="padding: 25px; border-top: 1px solid #eee; background: #f8f9fa;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 1.2em;">
+                <span>TOTAL:</span>
+                <span id="total-precio-carrito">0.00€</span>
+            </div>
+            <button onclick="comprobarCheckout()" class="btn-rojo" style="width: 100%; padding: 15px; font-size: 1.1em;">TRAMITAR PEDIDO 💳</button>
+        </div>
+    </div>
+    <div id="overlay-carrito" onclick="cerrarPanelCarrito()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2999;"></div>
+
+    <div id="modal-login" class="modal-overlay">
+        <div id="auth-card" class="modal-auth-content" style="background: white; width: 90%; max-width: 400px; padding: 40px; border-radius: 20px; position: relative; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <span onclick="cerrarLogin()" style="position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: #aaa;">×</span>
+            <div id="icono-auth" class="icono-animado" style="font-size: 3.5em; margin-bottom: 10px;">🔑</div>
+            <h2 id="titulo-login" style="color: #2c3e50; font-weight: 800; margin-bottom: 5px;">Iniciar Sesión</h2>
+            <p id="subtitulo-login" style="color: #7f8c8d; margin-bottom: 25px;">Acceso para clientes de La Estación</p>
+            <div id="mensaje-auth" style="display: none; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.9em; font-weight: bold;"></div>
+
+            <button onclick="loginGoogle()" style="width: 100%; background: white; color: #333; padding: 12px; border: 2px solid #eee; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" style="width: 20px;"> Continuar con Google
+            </button>
+            <div style="display: flex; align-items: center; margin-bottom: 15px; color: #aaa; font-size: 0.8em;"><hr style="flex: 1; border: none; border-top: 1px solid #eee;"><span style="padding: 0 10px;">o con tu email</span><hr style="flex: 1; border: none; border-top: 1px solid #eee;"></div>
+
+            <input type="email" id="email-login" placeholder="ejemplo@correo.com" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; outline: none;">
+            <input type="password" id="pass-login" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 5px; border: 2px solid #eee; border-radius: 10px; outline: none;">
+            
+            <div id="contenedor-recuperar" style="text-align: right; margin-bottom: 15px;"><span onclick="recuperarPass()" style="font-size: 0.8em; color: #7f8c8d; cursor: pointer; text-decoration: underline;">¿Has olvidado tu contraseña?</span></div>
+            <div id="reglas-pass" style="display: none; text-align: left; font-size: 0.8em; color: #e74c3c; margin-bottom: 20px; background: #fdf2f2; padding: 10px; border-radius: 8px;"><div id="regla-longitud">❌ Mínimo 6 caracteres</div><div id="regla-numero">❌ Debe contener un número</div></div>
+
+            <button id="btn-accion-login" onclick="procesarAuth()" style="width: 100%; background: #e74c3c; color: white; padding: 16px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s;">ENTRAR</button>
+            <p style="margin-top: 25px; font-size: 0.9em; color: #636e72;"><span id="texto-cambio-auth">¿Eres nuevo por aquí?</span><br><b onclick="cambiarModoAuth()" id="link-cambio-auth" style="color: #e74c3c; cursor: pointer;">Crear una cuenta nueva</b></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/motor.js"></script>
+
+</body>
+</html>

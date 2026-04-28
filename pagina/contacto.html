@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedir Cita | Taller La Estación</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="cabecera">
+        <div class="logo">
+            <h2><a href="index.html" style="text-decoration: none; color: inherit;">Taller <span>La Estación</span></a></h2>
+        </div>
+        <nav class="menu">
+            <a href="index.html">Inicio</a>
+            <a href="index.html#recambios">Recambios</a>
+        </nav>
+    </header>
+
+    <section class="seccion-cita">
+        <div class="cita-contenedor">
+            
+            <div class="cita-info">
+                <h2>Reserva tu cita en el taller</h2>
+                <p>Rellena el formulario con los datos de tu vehículo y el problema que tiene. Te contestaremos lo antes posible para confirmarte el día y la hora.</p>
+                
+                <div class="caja-whatsapp">
+                    <h3>¿Tienes prisa o es una urgencia?</h3>
+                    <p>Háblanos directamente por WhatsApp. Envíanos un mensaje, un audio o la foto de la pieza rota.</p>
+                    
+                    <a href="https://wa.me/34600000000?text=Hola,%20quería%20pedir%20cita%20en%20el%20taller." target="_blank" class="btn-whatsapp">
+                        💬 Hablar por WhatsApp
+                    </a>
+                </div>
+            </div>
+
+            <div class="cita-formulario">
+                <form action="#" method="POST">
+                    <div class="grupo-input">
+                        <label>Nombre completo</label>
+                        <input type="text" placeholder="Ej: Paco García" required>
+                    </div>
+                    
+                    <div class="grupo-input">
+                        <label>Matrícula y Modelo del Coche</label>
+                        <input type="text" placeholder="Ej: 1234-ABC (Seat León)" required>
+                    </div>
+                    
+                    <div class="grupo-input">
+                        <label>¿Qué necesitas?</label>
+                        <select required>
+                            <option value="">Selecciona un motivo...</option>
+                            <option value="mantenimiento">Mantenimiento (Aceite, Filtros...)</option>
+                            <option value="averia">Reparación de Avería</option>
+                            <option value="itv">Revisión Pre-ITV</option>
+                            <option value="presupuesto">Pedir un presupuesto</option>
+                        </select>
+                    </div>
+
+                    <div class="grupo-input">
+                        <label>Cuéntanos más detalles</label>
+                        <textarea rows="4" placeholder="Ej: Noto un ruido metálico al frenar..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-rojo btn-block">Enviar Solicitud</button>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="pie-pagina">
+        <div class="footer-creditos">
+            <p>© 2026 Taller La Estación. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
