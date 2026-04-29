@@ -142,22 +142,31 @@ function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
 
-    // --- INICIO DEL ARREGLO ---
-    // Si la sesión está activa y la ruta es 'perfil', dibujamos el panel y paramos aquí.
+    // --- 1. BLOQUE DE CARGA (EL FRENO) ---
+    // Si el inventario está vacío, es que aún no han bajado las piezas de la nube.
+    // Mostramos un mensaje de carga y paramos aquí.
+    if (inventarioNube.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align:center; padding:60px; width:100%;">
+                <h3 style="color:#2d3436;">Cargando piezas del almacén... ⚙️</h3>
+                <p style="color:#636e72;">Conectando con la base de datos</p>
+            </div>`;
+        return; 
+    }
+
+    // --- 2. GESTIÓN DE PERFIL ---
     if (sessionActiva && rutaActual === 'perfil') {
         if (typeof dibujarPanelPerfil === 'function') {
             dibujarPanelPerfil(contenedor);
         } else {
-            // Mensaje temporal si aún no hemos programado el diseño del perfil
             contenedor.innerHTML = '<div style="padding:60px; text-align:center;"><span style="font-size:3em;">👤</span><h3 style="color:#2d3436; margin-top:15px;">Panel de Usuario</h3><p>Aquí irá tu perfil de cliente.</p></div>';
         }
-        return; // Esto evita que el código siga y borre el perfil intentando cargar piezas
+        return; 
     }
-    // --- FIN DEL ARREGLO ---
 
     const termino = busquedaActual.toLowerCase();
     
-    // Escudo anticaídas: Nos aseguramos de que favoritosNube sea una lista válida
+    // Escudo para favoritos: solo los cargamos si la sesión está activa y los datos existen
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
     let filtradas = inventarioNube.filter(p => {
@@ -168,6 +177,8 @@ function renderizarVista() {
         let b = termino === '' || textoBusqueda.includes(termino);
         return r && f && b;
     });
+
+    // ... (aquí sigue el resto de tu código de tarjetas que ya tienes)
 
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
