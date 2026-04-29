@@ -2,11 +2,12 @@
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
+// Usamos tu clave publishable (¡Segura para la web!)
 const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
 
 // SESIÓN PERSISTENTE ACTIVADA (Nivel Pro)
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: true }
+    auth: { persistSession: true, autoRefreshToken: true }
 });
 
 let inventarioNube = [];
@@ -24,21 +25,27 @@ let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || [];
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
 
+// ESTO EVITA LA PANTALLA EN BLANCO: El semáforo de carga
+let cargandoInventario = true; 
+
 // ==========================================
-// 2. DESCARGA SEGURA
+// 2. DESCARGA SEGURA DEL INVENTARIO
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
-    const contenedor = document.getElementById('almacen-piezas');
-    // Skeleton loader elegante
-    if(contenedor) contenedor.innerHTML = '<div style="width:100%; text-align:center; padding:50px;"><h3 style="color:#2c3e50; animation: latidoFavorito 1s infinite;">Cargando almacén... ⚙️</h3></div>';
+    cargandoInventario = true;
+    renderizarVista(); // Mostramos el spinner
     
     try {
         const { data, error } = await clienteSupabase.from('productos').select('*');
-        console.log("Respuesta de Supabase:", data, error);
-        if (error) { console.error("Error de Supabase:", error); return; }
-        console.log("Respuesta de Supabase:", data, error);
+        if (error) { 
+            console.error("Error de Supabase:", error); 
+            cargandoInventario = false;
+            return; 
+        }
         
         inventarioNube = data || [];
+        cargandoInventario = false; // ¡Piezas descargadas!
+        
         generarFiltrosDeMarca(); 
         generarSubFiltros();
         
@@ -56,6 +63,7 @@ async function cargarPiezasDesdeLaNube() {
         }
     } catch (err) {  
         console.error("Fallo crítico:", err);
+        cargandoInventario = false;
     }
 }
 
@@ -136,15 +144,15 @@ window.quitarFiltro = (tipo) => {
 }
 
 // ==========================================
-// 4. EL RENDERIZADOR PRINCIPAL
+// 4. EL RENDERIZADOR PRINCIPAL BLINDADO
 // ==========================================
 function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
 
     // 1. EL "ESCUDO" DE CARGA PROFESIONAL
-    // Si inventarioNube no tiene datos, mostramos una carga elegante en lugar de una pantalla vacía.
-    if (!inventarioNube || inventarioNube.length === 0) {
+    // Usamos la variable cargandoInventario para saber si de verdad estamos descargando
+    if (cargandoInventario) {
         contenedor.innerHTML = `
             <div style="grid-column: 1 / -1; text-align:center; padding:80px 20px; background:white; border-radius:15px; border:1px solid #eee; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
                 <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #e74c3c; border-radius:50%; animation: girar 1s linear infinite; margin:0 auto 20px;"></div>
@@ -155,7 +163,7 @@ function renderizarVista() {
         return; 
     }
 
-    // 2. GESTIÓN DEL PERFIL (Igual que antes pero más robusto)
+    // 2. GESTIÓN DEL PERFIL
     if (sessionActiva && rutaActual === 'perfil') {
         if (typeof dibujarPanelPerfil === 'function') {
             dibujarPanelPerfil(contenedor);
@@ -167,10 +175,10 @@ function renderizarVista() {
 
     const termino = busquedaActual.toLowerCase();
     
-    // 3. ASEGURAR FAVORITOS[cite: 1]
+    // 3. ASEGURAR FAVORITOS
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
-    // 4. FILTRADO[cite: 1]
+    // 4. FILTRADO
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
@@ -179,9 +187,6 @@ function renderizarVista() {
         let b = termino === '' || textoBusqueda.includes(termino);
         return r && f && b;
     });
-
-    // ... (Aquí sigue todo tu código de filtradas.sort y el bucle html += ...)
-    // ... (Mantenlo exactamente como lo tenías en el archivo original[cite: 1])
 
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
@@ -438,7 +443,6 @@ window.comprobarCheckout = () => {
         btnCheckout.style.background = "#27ae60";
         btnCheckout.disabled = true;
 
-        // Simulamos el retraso de la red conectando con Stripe
         setTimeout(() => {
             alert("💳 ESTRUCTURA STRIPE LISTA\n\nAquí el usuario será redirigido automáticamente a la ventana de pago seguro de Stripe para introducir su tarjeta (Apple Pay / Google Pay).");
             btnCheckout.innerHTML = txtOriginal;
@@ -529,7 +533,6 @@ function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
     setTimeout(() => { toast.style.transform = 'translateY(20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
-// Funciones del perfil
 window.cerrarSesionSegura = async () => {
     if(confirm("¿Seguro que quieres cerrar la sesión?")) {
         await clienteSupabase.auth.signOut(); 
@@ -555,10 +558,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (session) {
             sessionActiva = true; 
             usuarioId = session.user.id;
+            // ¡AQUÍ ESTÁ PROTEGIDO EL product_ref!
             const { data } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.product_ref);
             
-            // BOTÓN PRO: Si estás dentro, te lleva a tu panel.
             btnU.forEach(btn => {
                 btn.innerHTML = `⚙️ Mi Panel de Control`;
                 btn.onclick = () => window.location.href = 'perfil.html';
@@ -566,7 +569,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.style.background = "#f0fff4";
             });
             
-            // Llenar datos en el perfil si estamos en esa página
             const emailText = document.getElementById('texto-email-perfil');
             if(emailText) emailText.innerText = session.user.email;
 
@@ -575,13 +577,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btnU.forEach(btn => {
                 btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f"; btn.style.background = "transparent";
             });
-            // Expulsar intrusos de la página de perfil
             if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
         }
         renderizarVista();
     });
 
-    // Detectar Enter en Login
     const inputPass = document.getElementById('pass-login');
     if(inputPass) {
         inputPass.addEventListener('input', (e) => {
