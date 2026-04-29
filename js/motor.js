@@ -31,15 +31,22 @@ let cargandoInventario = true;
 // ==========================================
 // 2. DESCARGA SEGURA DEL INVENTARIO
 // ==========================================
+// ==========================================
+// 2. DESCARGA SEGURA DEL INVENTARIO (CON AIRBAG)
+// ==========================================
 async function cargarPiezasDesdeLaNube() {
     cargandoInventario = true;
     renderizarVista(); // Mostramos el spinner
     
     try {
         const { data, error } = await clienteSupabase.from('productos').select('*');
+        
         if (error) { 
             console.error("Error de Supabase:", error); 
             cargandoInventario = false;
+            // AIRBAG: Si hay error, quitamos la rueda y mostramos el fallo
+            const contenedor = document.getElementById('almacen-piezas');
+            if (contenedor) contenedor.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px; background:#fff5f5; border-radius:10px; border:1px solid #ffcccc;"><h3 style="color:#e74c3c;">🚨 Acceso denegado a las piezas</h3><p style="color:#c0392b;">${error.message}</p><p style="font-size:0.8em;">(Aviso para el mecánico: Revisa las políticas RLS en Supabase)</p></div>`;
             return; 
         }
         
@@ -64,6 +71,8 @@ async function cargarPiezasDesdeLaNube() {
     } catch (err) {  
         console.error("Fallo crítico:", err);
         cargandoInventario = false;
+        const contenedor = document.getElementById('almacen-piezas');
+        if (contenedor) contenedor.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px;"><h3 style="color:#e74c3c;">🚨 Error crítico del sistema</h3><p>Abre la consola (F12) para ver los detalles.</p></div>`;
     }
 }
 
