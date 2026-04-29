@@ -28,15 +28,22 @@ const PIEZAS_POR_PAGINA = 12;
 // ESTO EVITA LA PANTALLA EN BLANCO: El semáforo de carga
 let cargandoInventario = true; 
 
+// Variable global para evitar el doble arranque (Ponla justo encima de la función)
+let descargandoPiezas = false;
+
 // ==========================================
-// 2. DESCARGA SEGURA DEL INVENTARIO
-// ==========================================
-// ==========================================
-// 2. DESCARGA SEGURA (CON CHIVATOS)
+// 2. DESCARGA SEGURA (SISTEMA ANTI-AHOGO)
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
-    console.log("🏁 1. Iniciando carga de piezas...");
+    // Si ya estamos descargando, frenamos en seco esta segunda orden fantasma
+    if (descargandoPiezas) {
+        console.log("✋ Freno: Ya estamos descargando, ignorando el doble arranque.");
+        return; 
+    }
+    
+    descargandoPiezas = true; // Echamos el cerrojo
     cargandoInventario = true;
+    console.log("🏁 1. Iniciando carga de piezas...");
     renderizarVista(); 
     
     try {
@@ -47,38 +54,35 @@ async function cargarPiezasDesdeLaNube() {
             console.error("❌ ERROR de Supabase:", error); 
             cargandoInventario = false;
             const contenedor = document.getElementById('almacen-piezas');
-            if (contenedor) contenedor.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px; background:#fff5f5; border-radius:10px; border:1px solid #ffcccc;"><h3 style="color:#e74c3c;">🚨 Error RLS Supabase</h3><p>${error.message}</p></div>`;
+            if (contenedor) contenedor.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px; background:#fff5f5; border-radius:10px; border:1px solid #ffcccc;"><h3 style="color:#e74c3c;">🚨 Error de conexión</h3><p>${error.message}</p></div>`;
             return; 
         }
         
-        console.log("✅ 3. Piezas recibidas:", data ? data.length : 0);
+        console.log("✅ 3. Piezas recibidas correctamente.");
         inventarioNube = data || [];
         cargandoInventario = false; 
         
-        console.log("🛠️ 4. Generando filtros...");
         generarFiltrosDeMarca(); 
         generarSubFiltros();
         
-        console.log("🔍 5. Comprobando URL...");
         const parametrosUrl = new URLSearchParams(window.location.search);
         const ref = parametrosUrl.get('ref');
         if (ref) {
-            console.log("   -> Abriendo modal de referencia:", ref);
             const p = inventarioNube.find(item => item.referencia === ref);
             if (p) window.abrirModal(p.referencia);
         }
         
         if (parametrosUrl.get('vista') === 'favoritos') {
-            console.log("❤️ 6. Yendo a vista favoritos...");
             setTimeout(() => verFavoritos(), 300);
         } else {
-            console.log("🎨 7. LLAMANDO A RENDERIZAR VISTA...");
             renderizarVista();
-            console.log("🎉 8. ¡Renderizado terminado con éxito!");
         }
     } catch (err) {  
         console.error("💣 FALLO CRÍTICO EN EL CÓDIGO:", err);
         cargandoInventario = false;
+    } finally {
+        // MUY IMPORTANTE: Pase lo que pase, al terminar quitamos el cerrojo
+        descargandoPiezas = false; 
     }
 }
 
