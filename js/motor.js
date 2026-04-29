@@ -565,48 +565,67 @@ window.abrirPestanaPerfil = (id) => {
 }
 
 // ==========================================
-// 9. EVENTOS GENERALES (EL CEREBRO ÚNICO OPTIMIZADO)
+// 9. EVENTOS GENERALES (ARRANQUE EN LÍNEA RECTA)
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
     actualizarInterfazCarrito();
+    console.log("🚀 ARRANCANDO MOTOR LINEAL...");
 
-    // 🚦 SEMÁFORO: Primero configuramos la sesión y los favoritos
-    clienteSupabase.auth.onAuthStateChange(async (event, session) => {
-        const btnU = document.querySelectorAll('#btn-usuario-nav'); 
-        if (session) {
-            sessionActiva = true; 
-            usuarioId = session.user.id;
-            const { data } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
+    // 🛑 PASO 1: COMPROBAR SESIÓN DE FORMA MANUAL (SIN EVENTOS LOCOS)
+    const { data: authData, error: authErr } = await clienteSupabase.auth.getSession();
+    const session = authData.session;
+
+    if (session) {
+        console.log("👤 Sesión activa confirmada:", session.user.email);
+        sessionActiva = true; 
+        usuarioId = session.user.id;
+        
+        console.log("⏳ Descargando favoritos...");
+        try {
+            const { data, error } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.product_ref);
-            
-            btnU.forEach(btn => {
-                btn.innerHTML = `⚙️ Mi Panel de Control`;
-                btn.onclick = () => window.location.href = 'perfil.html';
-                btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
-                btn.style.background = "#f0fff4";
-            });
-            
-            const emailText = document.getElementById('texto-email-perfil');
-            if(emailText) emailText.innerText = session.user.email;
-
-        } else {
-            sessionActiva = false; usuarioId = null; favoritosNube = [];
-            btnU.forEach(btn => {
-                btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f"; btn.style.background = "transparent";
-            });
-            if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
+            console.log("❤️ Favoritos cargados:", favoritosNube.length);
+        } catch (err) {
+            console.error("Fallo favoritos:", err);
         }
         
-        // 🟢 LUZ VERDE: Una vez resuelta la sesión, llamamos al almacén 
-        // (Esto evita que las peticiones choquen y el motor se congele)
-        if (inventarioNube.length === 0) {
-            cargarPiezasDesdeLaNube();
-        } else {
-            renderizarVista();
+        const btnU = document.querySelectorAll('#btn-usuario-nav'); 
+        btnU.forEach(btn => {
+            btn.innerHTML = `⚙️ Mi Panel de Control`;
+            btn.onclick = () => window.location.href = 'perfil.html';
+            btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
+            btn.style.background = "#f0fff4";
+        });
+        
+        const emailText = document.getElementById('texto-email-perfil');
+        if(emailText) emailText.innerText = session.user.email;
+
+    } else {
+        console.log("🕵️‍♂️ Usuario visitante (Sin sesión)");
+        sessionActiva = false; usuarioId = null; favoritosNube = [];
+        const btnU = document.querySelectorAll('#btn-usuario-nav');
+        btnU.forEach(btn => {
+            btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f"; btn.style.background = "transparent";
+        });
+        if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
+    }
+
+    // 🛑 PASO 2: SOLO CUANDO SE HA RESUELTO LA SESIÓN, DESCARGAMOS PIEZAS
+    console.log("📦 Ordenando descarga del catálogo principal...");
+    await cargarPiezasDesdeLaNube();
+
+    // 🛑 PASO 3: DEJAR UN CHIVATO POR SI EL USUARIO HACE LOGIN/LOGOUT AHORA
+    clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
+        // Si alguien inicia sesión o sale de ella de repente, recargamos la web entera para que haga el Paso 1 limpio
+        if (event === 'SIGNED_IN' && !sessionActiva) {
+            window.location.reload();
+        } else if (event === 'SIGNED_OUT' && sessionActiva) {
+            window.location.reload();
         }
     });
 
+    // --- (Resto de botones y buscadores) ---
     const inputPass = document.getElementById('pass-login');
     if(inputPass) {
         inputPass.addEventListener('input', (e) => {
@@ -615,9 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(rLon) { rLon.innerHTML = tieneLong ? '✅ Mínimo 6 caracteres' : '❌ Mínimo 6 caracteres'; rLon.style.color = tieneLong ? '#27ae60' : '#e74c3c'; }
             if(rNum) { rNum.innerHTML = tieneNum ? '✅ Debe contener un número' : '❌ Debe contener un número'; rNum.style.color = tieneNum ? '#27ae60' : '#e74c3c'; }
         });
-        inputPass.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') procesarAuth();
-        });
+        inputPass.addEventListener('keypress', (e) => { if (e.key === 'Enter') procesarAuth(); });
     }
 
     const btnFiltros = document.getElementById('btn-toggle-filtros');
@@ -648,7 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const inputB = document.getElementById('input-busqueda');
-    if (inputB) inputB.addEventListener('input', (e) => { busquedaActual = e.target.value; paginaActual = 1; document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; }); renderizarVista(); });
+    // Solución al fallo que me decías del "Search endpoint requested!"
+    if (inputB) {
+        const formPadre = inputB.closest('form');
+        if (formPadre) formPadre.addEventListener('submit', (e) => e.preventDefault());
+        
+        inputB.addEventListener('input', (e) => { busquedaActual = e.target.value; paginaActual = 1; document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; }); renderizarVista(); });
+    }
 
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
