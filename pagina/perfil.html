@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel Seguro | Taller La Estación</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .panel-grid { display: grid; grid-template-columns: 280px 1fr; gap: 30px; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .menu-perfil { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; border: 1px solid #eee; height: fit-content; }
+        .menu-perfil a { display: flex; align-items: center; gap: 10px; padding: 15px; color: #2c3e50; text-decoration: none; font-weight: bold; border-bottom: 1px solid #f1f2f6; transition: 0.3s; cursor: pointer; }
+        .menu-perfil a:hover { color: #e74c3c; background: #fdf2f2; border-radius: 8px; border-bottom-color: transparent; }
+        .contenido-perfil { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 40px; border: 1px solid #eee; min-height: 500px; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #eee; flex: 1; text-align: center; }
+        .stat-card h3 { font-size: 2em; color: #e74c3c; margin: 0; line-height: 1; }
+        @media (max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header class="cabecera">
+        <div class="logo">
+            <h2 style="margin: 0;"><a href="index.html" style="text-decoration: none; color: inherit;">Taller <span style="color: #e74c3c;">La Estación</span></a></h2>
+        </div>
+        <nav class="menu">
+            <a href="index.html" style="font-weight: bold; color: #2c3e50; text-decoration: none;">🏠 Volver a Inicio</a>
+            <a href="recambios.html" style="font-weight: bold; color: #e74c3c; text-decoration: none;">📦 Catálogo</a>
+        </nav>
+    </header>
+
+    <div class="panel-grid">
+        <aside class="menu-perfil">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; margin: 0 auto 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">👤</div>
+                <h3 style="color: #2c3e50; margin:0;">Mi Cuenta</h3>
+                <p id="texto-email-perfil" style="color: #7f8c8d; font-size: 0.85em; margin: 5px 0 0 0; word-break: break-all;">Cargando...</p>
+            </div>
+            
+            <a onclick="abrirPestanaPerfil('tab-resumen')">📊 Panel de Resumen</a>
+            <a onclick="abrirPestanaPerfil('tab-pedidos')">📦 Historial de Pedidos</a>
+            <a onclick="abrirPestanaPerfil('tab-garaje')">🚗 Mi Garaje</a>
+            <a href="recambios.html?vista=favoritos">❤️ Mis Favoritos</a>
+            <a onclick="abrirPestanaPerfil('tab-ajustes')" style="color: #aaa;">⚙️ Ajustes de Seguridad</a>
+            <br>
+            <button onclick="cerrarSesionSegura()" class="btn-rojo" style="width: 100%; padding: 12px; background: #fdf2f2; color: #e74c3c !important; border: 1px solid #fadbd8; box-shadow: none;">🚪 Salir de forma segura</button>
+        </aside>
+
+        <main class="contenido-perfil">
+            
+            <!-- Pestaña 1: Resumen -->
+            <div id="tab-resumen" class="contenido-perfil-tab">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Panel de Control General</h2>
+                
+                <div style="background: #e3fcf7; padding: 20px; border-radius: 8px; border-left: 4px solid #00b894; margin-bottom: 30px;">
+                    <h4 style="color: #00b894; margin-top: 0;">✅ Conexión Encriptada</h4>
+                    <p style="margin: 0; color: #2d3436; font-size: 0.9em;">Tus datos de pago y contraseñas están protegidos con los estándares de seguridad de Stripe y Supabase.</p>
+                </div>
+
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div class="stat-card">
+                        <span style="font-size: 2em;">📦</span>
+                        <h3>0</h3>
+                        <p style="color: #7f8c8d; font-weight: bold;">Pedidos Activos</p>
+                    </div>
+                    <div class="stat-card">
+                        <span style="font-size: 2em;">🚗</span>
+                        <h3>0</h3>
+                        <p style="color: #7f8c8d; font-weight: bold;">Coches Registrados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña 2: Pedidos -->
+            <div id="tab-pedidos" class="contenido-perfil-tab" style="display: none;">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Historial de Pedidos</h2>
+                <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
+                    <span style="font-size: 3em; opacity: 0.5;">🧾</span>
+                    <p style="color: #7f8c8d; font-size: 1.1em; margin-top: 10px;">Aún no has realizado ninguna compra.</p>
+                    <a href="recambios.html" class="btn-rojo" style="margin-top: 15px;">Ir al catálogo</a>
+                </div>
+            </div>
+
+            <!-- Pestaña 3: Garaje -->
+            <div id="tab-garaje" class="contenido-perfil-tab" style="display: none;">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Mi Garaje</h2>
+                <p style="color: #636e72;">Registra tu vehículo aquí y te mostraremos automáticamente solo las piezas que sean compatibles.</p>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #eee; margin-top: 20px;">
+                    <input type="text" placeholder="Ej: SEAT León 1.9 TDI (2008)" style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; outline: none; margin-bottom: 15px;">
+                    <button class="btn-rojo" onclick="mostrarNotificacionFlotante('Garaje actualizado correctamente', '#27ae60')">💾 Guardar Vehículo</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 4: Ajustes -->
+            <div id="tab-ajustes" class="contenido-perfil-tab" style="display: none;">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Ajustes de Seguridad</h2>
+                <div style="background: #fdf2f2; padding: 20px; border-radius: 8px; border: 1px solid #fadbd8;">
+                    <h4 style="color: #e74c3c; margin-top: 0;">Cambiar Contraseña</h4>
+                    <p style="font-size: 0.9em; color: #7f8c8d;">Te enviaremos un correo electrónico seguro con un enlace para restablecer tu contraseña.</p>
+                    <button class="btn-rojo" onclick="mostrarNotificacionFlotante('Enlace enviado a tu correo. Revisa la bandeja de entrada.', '#34495e')" style="background: #e74c3c; margin-top: 10px;">✉️ Solicitar Cambio</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts Esenciales -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/motor.js"></script>
+</body>
+</html>

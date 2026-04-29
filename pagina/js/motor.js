@@ -1,13 +1,12 @@
 // ==========================================
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
-// Credenciales actualizadas y truco para trabajar sin servidor local (file://)
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
 const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
 
-// Al añadir persistSession: false, el navegador permite la conexión desde un archivo local
+// SESIÓN PERSISTENTE ACTIVADA (Nivel Pro)
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false }
+    auth: { persistSession: true }
 });
 
 let inventarioNube = [];
@@ -20,7 +19,7 @@ let criterioOrden = 'nuevo';
 let sessionActiva = false;
 let usuarioId = null;
 let favoritosNube = []; 
-let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || []; // Restaurada persistencia del carrito
+let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || []; 
 
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
@@ -30,11 +29,14 @@ const PIEZAS_POR_PAGINA = 12;
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
     const contenedor = document.getElementById('almacen-piezas');
-    if(contenedor) contenedor.innerHTML = '<h3 style="text-align:center; width:100%; color:#555;">Conectando con el almacén central... ⚙️</h3>';
+    // Skeleton loader elegante
+    if(contenedor) contenedor.innerHTML = '<div style="width:100%; text-align:center; padding:50px;"><h3 style="color:#2c3e50; animation: latidoFavorito 1s infinite;">Cargando almacén... ⚙️</h3></div>';
     
     try {
         const { data, error } = await clienteSupabase.from('productos').select('*');
+        console.log("Respuesta de Supabase:", data, error);
         if (error) { console.error("Error de Supabase:", error); return; }
+        console.log("Respuesta de Supabase:", data, error);
         
         inventarioNube = data || [];
         generarFiltrosDeMarca(); 
@@ -47,13 +49,11 @@ async function cargarPiezasDesdeLaNube() {
             if (p) window.abrirModal(p.referencia);
         }
         
-        // Comprueba si venimos buscando los favoritos
         if (parametrosUrl.get('vista') === 'favoritos') {
             setTimeout(() => verFavoritos(), 300);
         } else {
             renderizarVista();
         }
-
     } catch (err) {  
         console.error("Fallo crítico:", err);
     }
@@ -104,17 +104,8 @@ function actualizarEtiquetasFiltros() {
     const contenedor = document.getElementById('etiquetas-filtros-activos');
     if (!contenedor) return;
     let html = '';
-    
-    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') {
-        html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
-    }
-    
-    if (filtroActual !== 'todos') {
-        html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
-    }
-    
-    // Hemos eliminado la línea que generaba la etiqueta de busquedaActual
-    
+    if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
+    if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
     contenedor.innerHTML = html;
 }
 
@@ -203,19 +194,19 @@ function renderizarVista() {
                     <div style="margin-top:auto; padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
                         ${precioHtml}
                         <div class="acciones-tarjeta" style="display:flex; gap:8px;">
-                            <button id="btn-fav-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${claseActiva}" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">${esFavorito ? '❤️' : '🤍'}</button>
-                            <button onclick="compartirPieza('${p.referencia}', event)" class="btn-icono-accion" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">🔗</button>
+                            <button id="btn-fav-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${claseActiva}" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="Guardar favorito">${esFavorito ? '❤️' : '🤍'}</button>
+                            <button onclick="compartirPieza('${p.referencia}', event)" class="btn-icono-accion" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="Copiar enlace">🔗</button>
                         </div>
                     </div>
                     <div style="display:flex; gap:10px; margin-top:15px;">
                         <button onclick="añadirAlCarrito('${p.referencia}', event)" class="btn-rojo" style="flex:2; padding:10px;">🛒 Añadir</button>
-                        <a href="${linkWhatsapp}" target="_blank" class="btn-rojo" style="flex:1; background:#f1f2f6; color:#2c3e50 !important; box-shadow:none; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; text-decoration:none;">💬</a>
+                        <a href="${linkWhatsapp}" target="_blank" class="btn-rojo" style="flex:1; background:#f1f2f6; color:#2c3e50 !important; box-shadow:none; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; text-decoration:none;" title="Preguntar por WhatsApp">💬</a>
                     </div>
                 </div>
             </div>`;
     });
     
-    contenedor.innerHTML = html || '<h3 style="text-align:center; width:100%; color:#aaa; margin-top:50px;">Aún no hay piezas aquí 🕵️‍♂️</h3>';
+    contenedor.innerHTML = html || '<div style="width:100%; text-align:center; padding:60px;"><span style="font-size:3em;">🕵️‍♂️</span><h3 style="color:#636e72; margin-top:10px;">No encontramos piezas con esos filtros</h3></div>';
 
     actualizarEtiquetasFiltros();
     dibujarPaginacion(totalPaginas); 
@@ -243,7 +234,7 @@ window.cambiarPagina = (nuevaPagina) => {
 
 window.compartirPieza = (ref, e) => {
     if(e) e.stopPropagation();
-    navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?ref=${ref}`).then(() => mostrarNotificacionFlotante("🔗 Enlace copiado"));
+    navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?ref=${ref}`).then(() => mostrarNotificacionFlotante("🔗 Enlace copiado al portapapeles", "#2980b9"));
 }
 
 window.verFavoritos = async () => {
@@ -251,37 +242,28 @@ window.verFavoritos = async () => {
         window.location.href = "recambios.html?vista=favoritos";
         return;
     }
-
     if (!sessionActiva) {
-        alert("🔒 ¡Inicia sesión para ver tu lista de piezas guardadas!");
+        mostrarNotificacionFlotante("🔒 ¡Inicia sesión para ver tu lista de piezas guardadas!", "#e74c3c");
         window.abrirLogin();
         return;
     }
-
     document.querySelectorAll('.btn-ruta-v').forEach(b => { 
         b.style.background = 'white'; b.style.color = 'black'; b.style.borderColor = '#ddd'; 
         b.classList.remove('activo');
     });
-
-    rutaActual = 'favoritos';
-    filtroActual = 'todos';
-    paginaActual = 1;
-    
+    rutaActual = 'favoritos'; filtroActual = 'todos'; paginaActual = 1;
     if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = '❤️ Mis Favoritos';
     if(document.getElementById('bloque-subfiltros')) document.getElementById('bloque-subfiltros').style.display = 'none';
-    
     renderizarVista();
 };
 
 window.toggleFavorito = async (ref, e) => {
     if(e) e.stopPropagation();
-    
     if (!sessionActiva) { 
-        alert("🔒 ¡Inicia sesión para guardar favoritos!"); 
+        mostrarNotificacionFlotante("🔒 Inicia sesión para guardar favoritos", "#e74c3c");
         window.abrirLogin(); 
         return; 
     }
-
     const indice = favoritosNube.indexOf(ref);
     const botonPulsado = e ? e.currentTarget : document.getElementById(`btn-fav-${ref}`);
     const btnM = document.getElementById(`btn-fav-modal-${ref}`);
@@ -290,28 +272,16 @@ window.toggleFavorito = async (ref, e) => {
         favoritosNube.push(ref);
         if(botonPulsado){ botonPulsado.innerHTML = '❤️'; botonPulsado.classList.add('fav-activo'); }
         if(btnM){ btnM.innerHTML = '❤️'; btnM.classList.add('fav-activo'); }
-        mostrarNotificacionFlotante("⭐ Guardado en tus favoritos");
+        mostrarNotificacionFlotante("⭐ Guardado en tus favoritos", "#f39c12");
         await clienteSupabase.from('favoritos').insert([{ user_id: usuarioId, producto_ref: ref }]);
     } else {
         favoritosNube.splice(indice, 1);
         if(botonPulsado){ botonPulsado.innerHTML = '🤍'; botonPulsado.classList.remove('fav-activo'); }
         if(btnM){ btnM.innerHTML = '🤍'; btnM.classList.remove('fav-activo'); }
-        mostrarNotificacionFlotante("🗑️ Eliminado de favoritos");
+        mostrarNotificacionFlotante("🗑️ Eliminado de favoritos", "#7f8c8d");
         if(rutaActual === 'favoritos') renderizarVista();
         await clienteSupabase.from('favoritos').delete().eq('user_id', usuarioId).eq('producto_ref', ref);
     }
-}
-
-function mostrarNotificacionFlotante(mensaje) {
-    const vieja = document.getElementById('notificacion-flotante');
-    if (vieja) vieja.remove();
-    const toast = document.createElement('div');
-    toast.id = 'notificacion-flotante';
-    toast.innerText = mensaje;
-    toast.style.cssText = 'position:fixed; bottom:30px; right:30px; background:#2c3e50; color:white; padding:12px 24px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; font-weight:bold; transform:translateY(100px); opacity:0; transition:all 0.3s ease;';
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; }, 10);
-    setTimeout(() => { toast.style.transform = 'translateY(20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
 }
 
 // ==========================================
@@ -372,7 +342,7 @@ window.cambiarFoto = (el, url) => {
 window.cerrarModal = () => document.getElementById('modal-producto').style.display = 'none';
 
 // ==========================================
-// 7. CARRITO DE COMPRAS
+// 7. CARRITO DE COMPRAS & STRIPE 💳
 // ==========================================
 window.abrirPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '0'; document.getElementById('overlay-carrito').style.display = 'block'; }
 window.cerrarPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '-400px'; document.getElementById('overlay-carrito').style.display = 'none'; }
@@ -382,11 +352,11 @@ window.añadirAlCarrito = (ref, e) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
     carrito.push(p);
-    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Guardar en local para que no se borre
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito));
     actualizarInterfazCarrito();
     const cont = document.getElementById('contenedor-carrito-nav');
     if(cont) { cont.style.transform = 'scale(1.3)'; setTimeout(() => cont.style.transform = 'scale(1)', 200); }
-    mostrarNotificacionFlotante("🛒 Añadido a la cesta");
+    mostrarNotificacionFlotante("🛒 Añadido a la cesta correctamente", "#27ae60");
 }
 
 function actualizarInterfazCarrito() {
@@ -395,7 +365,7 @@ function actualizarInterfazCarrito() {
     const totalTxt = document.getElementById('total-precio-carrito');
 
     if (carrito.length === 0) {
-        if(lista) lista.innerHTML = '<p style="text-align: center; color: #aaa; margin-top: 50px;">Tu cesta está vacía...</p>';
+        if(lista) lista.innerHTML = '<div style="text-align:center; padding:40px;"><span style="font-size:3em;">🛒</span><p style="color:#aaa; margin-top:10px;">Tu cesta está vacía...</p></div>';
         contadores.forEach(c => c.style.display = 'none');
         if(totalTxt) totalTxt.innerText = '0.00€';
         return;
@@ -410,7 +380,7 @@ function actualizarInterfazCarrito() {
         html += `<div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <img src="${p.foto_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; object-fit:contain; background:#f9f9f9; border-radius:5px;">
                 <div style="flex-grow:1;"><h4 style="font-size:0.9em; margin:0; color:#2c3e50;">${p.titulo}</h4><span style="color:#e74c3c; font-weight:bold;">${p.precio || '0€'}</span></div>
-                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#aaa; font-weight:bold; font-size:1.5em;">&times;</span>
+                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#e74c3c; font-weight:bold; font-size:1.5em; background:#fdf2f2; padding:0 10px; border-radius:8px;">&times;</span>
             </div>`;
     });
     if(lista) lista.innerHTML = html;
@@ -419,16 +389,35 @@ function actualizarInterfazCarrito() {
 
 window.eliminarDelCarrito = (index) => { 
     carrito.splice(index, 1); 
-    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Actualizar local
+    localStorage.setItem('mi_carrito', JSON.stringify(carrito)); 
     actualizarInterfazCarrito(); 
 }
 
+// 🚀 ESTRUCTURA DE PAGO SEGURO (Stripe)
 window.comprobarCheckout = () => {
-    if (carrito.length === 0) return alert("⚠️ La cesta está vacía.");
+    if (carrito.length === 0) {
+        mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
+        return;
+    }
     if (!sessionActiva) {
-        alert("🔒 Inicia sesión o crea una cuenta para tramitar tu pedido.");
-        window.cerrarPanelCarrito(); window.abrirLogin();
-    } else { alert("💳 ¡Genial! Preparando pasarela de pago (Stripe)..."); }
+        mostrarNotificacionFlotante("🔒 Inicia sesión para tramitar el pago", "#f39c12");
+        window.cerrarPanelCarrito(); 
+        window.abrirLogin();
+    } else { 
+        const btnCheckout = document.querySelector('#footer-carrito button');
+        const txtOriginal = btnCheckout.innerHTML;
+        btnCheckout.innerHTML = "Conectando con Pasarela Segura... 🔒";
+        btnCheckout.style.background = "#27ae60";
+        btnCheckout.disabled = true;
+
+        // Simulamos el retraso de la red conectando con Stripe
+        setTimeout(() => {
+            alert("💳 ESTRUCTURA STRIPE LISTA\n\nAquí el usuario será redirigido automáticamente a la ventana de pago seguro de Stripe para introducir su tarjeta (Apple Pay / Google Pay).");
+            btnCheckout.innerHTML = txtOriginal;
+            btnCheckout.style.background = "#e74c3c";
+            btnCheckout.disabled = false;
+        }, 2000);
+    }
 }
 
 // ==========================================
@@ -463,18 +452,6 @@ window.cambiarModoAuth = () => {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const inputPass = document.getElementById('pass-login');
-    if(inputPass) {
-        inputPass.addEventListener('input', (e) => {
-            const pass = e.target.value; const tieneLong = pass.length >= 6; const tieneNum = /\d/.test(pass);
-            const rLon = document.getElementById('regla-longitud'); const rNum = document.getElementById('regla-numero');
-            if(rLon) { rLon.innerHTML = tieneLong ? '✅ Mínimo 6 caracteres' : '❌ Mínimo 6 caracteres'; rLon.style.color = tieneLong ? '#27ae60' : '#e74c3c'; }
-            if(rNum) { rNum.innerHTML = tieneNum ? '✅ Debe contener un número' : '❌ Debe contener un número'; rNum.style.color = tieneNum ? '#27ae60' : '#e74c3c'; }
-        });
-    }
-});
-
 window.recuperarPass = async function() {
     const email = document.getElementById('email-login').value;
     if (!email) return mostrarMensajeAuth("⚠️ Escribe tu email arriba para enviar el enlace", "orange");
@@ -502,8 +479,8 @@ window.procesarAuth = async function() {
         mostrarMensajeAuth("❌ " + res.error.message, "#ff7675");
         btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); btn.disabled = false;
     } else {
-        mostrarMensajeAuth(titulo === 'Iniciar Sesión' ? "¡Hola de nuevo! 👋" : "¡Bienvenida/o! 🌟", "#55efc4");
-        setTimeout(() => { cerrarLogin(); btn.disabled = false; }, 1500);
+        mostrarNotificacionFlotante(titulo === 'Iniciar Sesión' ? "¡Hola de nuevo! 👋" : "¡Bienvenida/o! 🌟", "#27ae60");
+        setTimeout(() => { cerrarLogin(); btn.disabled = false; }, 1000);
     }
 }
 
@@ -512,65 +489,107 @@ function mostrarMensajeAuth(texto, color) {
     if(div) { div.innerText = texto; div.style.display = 'block'; div.style.backgroundColor = color + "22"; div.style.color = color; }
 }
 
-window.cerrarSesion = async () => { await clienteSupabase.auth.signOut(); location.reload(); }
+function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
+    const vieja = document.getElementById('notificacion-flotante');
+    if (vieja) vieja.remove();
+    const toast = document.createElement('div');
+    toast.id = 'notificacion-flotante';
+    toast.innerText = mensaje;
+    toast.style.cssText = `position:fixed; bottom:30px; right:30px; background:${color}; color:white; padding:15px 25px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; font-weight:bold; transform:translateY(100px); opacity:0; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; }, 10);
+    setTimeout(() => { toast.style.transform = 'translateY(20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+// Funciones del perfil
+window.cerrarSesionSegura = async () => {
+    if(confirm("¿Seguro que quieres cerrar la sesión?")) {
+        await clienteSupabase.auth.signOut(); 
+        window.location.href = 'index.html';
+    }
+}
+window.abrirPestanaPerfil = (id) => {
+    document.querySelectorAll('.contenido-perfil-tab').forEach(t => t.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    mostrarNotificacionFlotante("Cargando datos...", "#34495e");
+}
 
 // ==========================================
-// 9. EVENTOS GENERALES (EL CEREBRO CENTRAL)
+// 9. EVENTOS GENERALES (EL CEREBRO ÚNICO OPTIMIZADO)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Escucha de sesión de Supabase
+    actualizarInterfazCarrito();
+    cargarPiezasDesdeLaNube();
+
     clienteSupabase.auth.onAuthStateChange(async (event, session) => {
         const btnU = document.querySelectorAll('#btn-usuario-nav'); 
         if (session) {
-            sessionActiva = true; usuarioId = session.user.id;
+            sessionActiva = true; 
+            usuarioId = session.user.id;
             const { data } = await clienteSupabase.from('favoritos').select('producto_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.producto_ref);
+            
+            // BOTÓN PRO: Si estás dentro, te lleva a tu panel.
             btnU.forEach(btn => {
-                btn.innerHTML = `✅ ${session.user.email.split('@')[0].toUpperCase()} <span style="font-size:0.8em; opacity:0.6;">(Salir)</span>`;
-                btn.onclick = cerrarSesion; btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
+                btn.innerHTML = `⚙️ Mi Panel de Control`;
+                btn.onclick = () => window.location.href = 'perfil.html';
+                btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
+                btn.style.background = "#f0fff4";
             });
-            renderizarVista();
+            
+            // Llenar datos en el perfil si estamos en esa página
+            const emailText = document.getElementById('texto-email-perfil');
+            if(emailText) emailText.innerText = session.user.email;
+
         } else {
             sessionActiva = false; usuarioId = null; favoritosNube = [];
             btnU.forEach(btn => {
-                btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f";
+                btn.innerHTML = "👤 Mi Cuenta"; btn.onclick = abrirLogin; btn.style.color = "#1a252f"; btn.style.borderColor = "#1a252f"; btn.style.background = "transparent";
             });
-            renderizarVista();
+            // Expulsar intrusos de la página de perfil
+            if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
         }
+        renderizarVista();
     });
 
-    // Cargar piezas
-    cargarPiezasDesdeLaNube();
+    // Detectar Enter en Login
+    const inputPass = document.getElementById('pass-login');
+    if(inputPass) {
+        inputPass.addEventListener('input', (e) => {
+            const pass = e.target.value; const tieneLong = pass.length >= 6; const tieneNum = /\d/.test(pass);
+            const rLon = document.getElementById('regla-longitud'); const rNum = document.getElementById('regla-numero');
+            if(rLon) { rLon.innerHTML = tieneLong ? '✅ Mínimo 6 caracteres' : '❌ Mínimo 6 caracteres'; rLon.style.color = tieneLong ? '#27ae60' : '#e74c3c'; }
+            if(rNum) { rNum.innerHTML = tieneNum ? '✅ Debe contener un número' : '❌ Debe contener un número'; rNum.style.color = tieneNum ? '#27ae60' : '#e74c3c'; }
+        });
+        inputPass.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') procesarAuth();
+        });
+    }
 
-    // Filtros de móvil
     const btnFiltros = document.getElementById('btn-toggle-filtros');
     const sidebar = document.querySelector('.sidebar-filtros');
     if (btnFiltros && sidebar) {
         btnFiltros.addEventListener('click', () => {
             sidebar.classList.toggle('abierta');
-            if (sidebar.classList.contains('abierta')) { btnFiltros.innerHTML = '❌ Ocultar Filtros'; btnFiltros.style.background = '#e74c3c'; } 
-            else { btnFiltros.innerHTML = '⚙️ Mostrar Filtros'; btnFiltros.style.background = '#2c3e50'; }
+            btnFiltros.innerHTML = sidebar.classList.contains('abierta') ? '❌ Ocultar Filtros' : '⚙️ Mostrar Filtros';
+            btnFiltros.style.background = sidebar.classList.contains('abierta') ? '#e74c3c' : '#2c3e50';
         });
     }
 
-    // Rutas (Menú lateral)
     document.querySelectorAll('.btn-ruta-v').forEach(boton => {
         boton.addEventListener('click', (e) => {
             document.querySelectorAll('.btn-ruta-v').forEach(b => { b.style.background = 'white'; b.style.color = 'black'; b.style.borderColor = '#ddd'; });
-            
             rutaActual = e.target.getAttribute('data-ruta');
-            
             if(rutaActual === 'favoritos') {
                 e.target.style.background = '#fffbe8'; e.target.style.color = '#d6a200'; e.target.style.borderColor = '#ffd32a';
                 if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = '⭐ Mis Favoritos';
-                if(!sessionActiva) { alert("⚠️ Inicia sesión para ver tus piezas guardadas."); abrirLogin(); }
+                if(!sessionActiva) { mostrarNotificacionFlotante("⚠️ Inicia sesión para ver tus piezas guardadas.", "#f39c12"); abrirLogin(); }
             } else {
                 e.target.style.background = '#e74c3c'; e.target.style.color = 'white'; e.target.style.borderColor = '#e74c3c';
                 if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = rutaActual === 'inicio' ? 'Catálogo General' : 'Sección: ' + rutaActual.charAt(0).toUpperCase() + rutaActual.slice(1);
                 generarSubFiltros(); 
             }
-            
             filtroActual = 'todos'; paginaActual = 1; renderizarVista();
         });
     });
