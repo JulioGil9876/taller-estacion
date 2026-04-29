@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (session) {
             sessionActiva = true; 
             usuarioId = session.user.id;
-            const { data } = await clienteSupabase.from('favoritos').select('producto_ref').eq('user_id', usuarioId);
+            const { data } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.producto_ref);
             
             // BOTÓN PRO: Si estás dentro, te lleva a tu panel.
