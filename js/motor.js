@@ -141,9 +141,24 @@ window.quitarFiltro = (tipo) => {
 function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
+
+    // --- INICIO DEL ARREGLO ---
+    // Si la sesión está activa y la ruta es 'perfil', dibujamos el panel y paramos aquí.
+    if (sessionActiva && rutaActual === 'perfil') {
+        if (typeof dibujarPanelPerfil === 'function') {
+            dibujarPanelPerfil(contenedor);
+        } else {
+            // Mensaje temporal si aún no hemos programado el diseño del perfil
+            contenedor.innerHTML = '<div style="padding:60px; text-align:center;"><span style="font-size:3em;">👤</span><h3 style="color:#2d3436; margin-top:15px;">Panel de Usuario</h3><p>Aquí irá tu perfil de cliente.</p></div>';
+        }
+        return; // Esto evita que el código siga y borre el perfil intentando cargar piezas
+    }
+    // --- FIN DEL ARREGLO ---
+
     const termino = busquedaActual.toLowerCase();
     
-    let misFavoritos = sessionActiva ? favoritosNube : [];
+    // Escudo anticaídas: Nos aseguramos de que favoritosNube sea una lista válida
+    let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
@@ -211,7 +226,6 @@ function renderizarVista() {
     actualizarEtiquetasFiltros();
     dibujarPaginacion(totalPaginas); 
 }
-
 // ==========================================
 // 5. MOTOR DE PAGINACIÓN, COMPARTIR Y FAVORITOS
 // ==========================================
