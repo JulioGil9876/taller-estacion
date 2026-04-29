@@ -142,33 +142,35 @@ function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
 
-    // --- 1. BLOQUE DE CARGA (EL FRENO) ---
-    // Si el inventario está vacío, es que aún no han bajado las piezas de la nube.
-    // Mostramos un mensaje de carga y paramos aquí.
-    if (inventarioNube.length === 0) {
+    // 1. EL "ESCUDO" DE CARGA PROFESIONAL
+    // Si inventarioNube no tiene datos, mostramos una carga elegante en lugar de una pantalla vacía.
+    if (!inventarioNube || inventarioNube.length === 0) {
         contenedor.innerHTML = `
-            <div style="text-align:center; padding:60px; width:100%;">
-                <h3 style="color:#2d3436;">Cargando piezas del almacén... ⚙️</h3>
-                <p style="color:#636e72;">Conectando con la base de datos</p>
+            <div style="grid-column: 1 / -1; text-align:center; padding:80px 20px; background:white; border-radius:15px; border:1px solid #eee; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+                <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #e74c3c; border-radius:50%; animation: girar 1s linear infinite; margin:0 auto 20px;"></div>
+                <h3 style="color:#2d3436; margin:0; font-size:1.4em;">Sincronizando almacén...</h3>
+                <p style="color:#636e72; margin-top:10px;">Preparando el inventario para tu sesión segura.</p>
+                <style>@keyframes girar { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
             </div>`;
         return; 
     }
 
-    // --- 2. GESTIÓN DE PERFIL ---
+    // 2. GESTIÓN DEL PERFIL (Igual que antes pero más robusto)
     if (sessionActiva && rutaActual === 'perfil') {
         if (typeof dibujarPanelPerfil === 'function') {
             dibujarPanelPerfil(contenedor);
         } else {
-            contenedor.innerHTML = '<div style="padding:60px; text-align:center;"><span style="font-size:3em;">👤</span><h3 style="color:#2d3436; margin-top:15px;">Panel de Usuario</h3><p>Aquí irá tu perfil de cliente.</p></div>';
+            contenedor.innerHTML = '<div style="grid-column:1/-1; padding:100px; text-align:center;"><h3>Panel de Usuario en mantenimiento</h3></div>';
         }
         return; 
     }
 
     const termino = busquedaActual.toLowerCase();
     
-    // Escudo para favoritos: solo los cargamos si la sesión está activa y los datos existen
+    // 3. ASEGURAR FAVORITOS[cite: 1]
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
+    // 4. FILTRADO[cite: 1]
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
@@ -178,7 +180,8 @@ function renderizarVista() {
         return r && f && b;
     });
 
-    // ... (aquí sigue el resto de tu código de tarjetas que ya tienes)
+    // ... (Aquí sigue todo tu código de filtradas.sort y el bucle html += ...)
+    // ... (Mantenlo exactamente como lo tenías en el archivo original[cite: 1])
 
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
