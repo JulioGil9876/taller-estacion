@@ -566,14 +566,13 @@ window.abrirPestanaPerfil = (id) => {
 document.addEventListener('DOMContentLoaded', () => {
     
     actualizarInterfazCarrito();
-    cargarPiezasDesdeLaNube();
 
+    // 🚦 SEMÁFORO: Primero configuramos la sesión y los favoritos
     clienteSupabase.auth.onAuthStateChange(async (event, session) => {
         const btnU = document.querySelectorAll('#btn-usuario-nav'); 
         if (session) {
             sessionActiva = true; 
             usuarioId = session.user.id;
-            // ¡AQUÍ ESTÁ PROTEGIDO EL product_ref!
             const { data } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.product_ref);
             
@@ -594,7 +593,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
         }
-        renderizarVista();
+        
+        // 🟢 LUZ VERDE: Una vez resuelta la sesión, llamamos al almacén 
+        // (Esto evita que las peticiones choquen y el motor se congele)
+        if (inventarioNube.length === 0) {
+            cargarPiezasDesdeLaNube();
+        } else {
+            renderizarVista();
+        }
     });
 
     const inputPass = document.getElementById('pass-login');
