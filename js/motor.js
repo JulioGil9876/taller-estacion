@@ -301,14 +301,14 @@ window.toggleFavorito = async (ref, e) => {
         if(botonPulsado){ botonPulsado.innerHTML = '❤️'; botonPulsado.classList.add('fav-activo'); }
         if(btnM){ btnM.innerHTML = '❤️'; btnM.classList.add('fav-activo'); }
         mostrarNotificacionFlotante("⭐ Guardado en tus favoritos", "#f39c12");
-        await clienteSupabase.from('favoritos').insert([{ user_id: usuarioId, producto_ref: ref }]);
+        await clienteSupabase.from('favoritos').insert([{ user_id: usuarioId, product_ref: ref }]);
     } else {
         favoritosNube.splice(indice, 1);
         if(botonPulsado){ botonPulsado.innerHTML = '🤍'; botonPulsado.classList.remove('fav-activo'); }
         if(btnM){ btnM.innerHTML = '🤍'; btnM.classList.remove('fav-activo'); }
         mostrarNotificacionFlotante("🗑️ Eliminado de favoritos", "#7f8c8d");
         if(rutaActual === 'favoritos') renderizarVista();
-        await clienteSupabase.from('favoritos').delete().eq('user_id', usuarioId).eq('producto_ref', ref);
+        await clienteSupabase.from('favoritos').delete().eq('user_id', usuarioId).eq('product_ref', ref);
     }
 }
 
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionActiva = true; 
             usuarioId = session.user.id;
             const { data } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
-            if (data) favoritosNube = data.map(f => f.producto_ref);
+            if (data) favoritosNube = data.map(f => f.product_ref);
             
             // BOTÓN PRO: Si estás dentro, te lleva a tu panel.
             btnU.forEach(btn => {
