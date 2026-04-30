@@ -222,21 +222,23 @@
             <div id="mensaje-auth" style="display: none; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.9em; font-weight: bold;"></div>
 
             <button onclick="loginGoogle()" style="width: 100%; background: white; color: #333; padding: 12px; border: 2px solid #eee; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" style="width: 20px;"> Continuar con Google
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" style="width: 20px;"> Continuar con Google
             </button>
             <div style="display: flex; align-items: center; margin-bottom: 15px; color: #aaa; font-size: 0.8em;"><hr style="flex: 1; border: none; border-top: 1px solid #eee;"><span style="padding: 0 10px;">o con tu email</span><hr style="flex: 1; border: none; border-top: 1px solid #eee;"></div>
 
-            <input type="email" id="email-login" placeholder="ejemplo@correo.com" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; outline: none;">
-            <input type="password" id="pass-login" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 5px; border: 2px solid #eee; border-radius: 10px; outline: none;">
-            
-            <div id="contenedor-recuperar" style="text-align: right; margin-bottom: 15px;"><span onclick="recuperarPass()" style="font-size: 0.8em; color: #7f8c8d; cursor: pointer; text-decoration: underline;">¿Has olvidado tu contraseña?</span></div>
-            <div id="reglas-pass" style="display: none; text-align: left; font-size: 0.8em; color: #e74c3c; margin-bottom: 20px; background: #fdf2f2; padding: 10px; border-radius: 8px;"><div id="regla-longitud">❌ Mínimo 6 caracteres</div><div id="regla-numero">❌ Debe contener un número</div></div>
+            <!-- Aquí está el formulario que evita recargas extrañas -->
+            <form onsubmit="event.preventDefault(); procesarAuth();" style="margin: 0; padding: 0;">
+                <input type="email" id="email-login" placeholder="ejemplo@correo.com" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; outline: none; box-sizing: border-box;">
+                <input type="password" id="pass-login" placeholder="Contraseña" required style="width: 100%; padding: 12px; margin-bottom: 5px; border: 2px solid #eee; border-radius: 10px; outline: none; box-sizing: border-box;">
+                
+                <div id="contenedor-recuperar" style="text-align: right; margin-bottom: 15px;"><span onclick="recuperarPass()" style="font-size: 0.8em; color: #7f8c8d; cursor: pointer; text-decoration: underline;">¿Has olvidado tu contraseña?</span></div>
+                <div id="reglas-pass" style="display: none; text-align: left; font-size: 0.8em; color: #e74c3c; margin-bottom: 20px; background: #fdf2f2; padding: 10px; border-radius: 8px;"><div id="regla-longitud">❌ Mínimo 6 caracteres</div><div id="regla-numero">❌ Debe contener un número</div></div>
 
-            <button id="btn-accion-login" onclick="procesarAuth()" style="width: 100%; background: #e74c3c; color: white; padding: 16px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s;">ENTRAR</button>
+                <button type="submit" id="btn-accion-login" style="width: 100%; background: #e74c3c; color: white; padding: 16px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s;">ENTRAR</button>
+            </form>
             <p style="margin-top: 25px; font-size: 0.9em; color: #636e72;"><span id="texto-cambio-auth">¿Eres nuevo por aquí?</span><br><b onclick="cambiarModoAuth()" id="link-cambio-auth" style="color: #e74c3c; cursor: pointer;">Crear una cuenta nueva</b></p>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/motor.js"></script>
 </body>

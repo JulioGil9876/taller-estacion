@@ -67,14 +67,25 @@ body { background-color: var(--fondo-gris); color: var(--texto); line-height: 1.
 .modal-box { background: white; width: 90%; max-width: 900px; border-radius: 15px; position: relative; overflow: hidden; animation: slideUp 0.3s ease-out; }
 
 /* --- LOGIN Y CARRITO (NUEVO) --- */
-.modal-auth-content { transition: all 0.4s ease; border-top: 8px solid var(--rojo-motor); animation: slideUp 0.3s ease-out; }
+.modal-auth-content { 
+    transition: all 0.4s ease; 
+    border-top: 8px solid var(--rojo-motor); 
+    animation: slideUp 0.3s ease-out; 
+    /* LA MAGIA ELÁSTICA: Nunca será más alto que la pantalla y tendrá scroll */
+    max-height: 85vh; 
+    overflow-y: auto; 
+    box-sizing: border-box;
+}
+/* Estilo de la barrita de scroll interna para que quede profesional */
+.modal-auth-content::-webkit-scrollbar { width: 6px; }
+.modal-auth-content::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
+
 .modo-registro-activo { border-top-color: #27ae60 !important; background: linear-gradient(to bottom, #f0fff4, #ffffff) !important; }
 .icono-animado { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; }
 .icono-girar { transform: rotateY(360deg) scale(1.2); }
 @keyframes latidoFavorito { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 .btn-icono-accion.fav-activo { background: #ffeaa7 !important; animation: latidoFavorito 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
 /* --- MÓVIL (AJUSTES CLÍNICOS) --- */
 @media (max-width: 768px) {
     .cabecera { flex-direction: column; padding: 15px; text-align: center; }

@@ -675,4 +675,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
+// ==========================================
+// 10. GESTIÓN DEL PERFIL PROFESIONAL
+// ==========================================
+window.guardarCoche = async function() {
+    const inputCoche = document.getElementById('input-coche');
+    if(!inputCoche) return;
+    
+    const vehiculo = inputCoche.value.trim();
+
+    // 🛑 El freno de mano: Si está vacío, no pasa
+    if (vehiculo === "") {
+        mostrarNotificacionFlotante("⚠️ ¡Frena! Escribe el modelo antes de guardar.", "#e74c3c");
+        inputCoche.focus(); // Ponemos el cursor en la caja para que escriba
+        return; 
+    }
+
+    // 🟢 Si hay texto, lo guardamos (Más adelante lo conectaremos con Supabase)
+    console.log("Aparcando coche en la base de datos:", vehiculo);
+    mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
+    
+    // Limpiamos la caja para que quede bonito
+    inputCoche.value = ""; 
+};
+
 });
