@@ -678,25 +678,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ==========================================
 // 10. GESTIÓN DEL PERFIL PROFESIONAL
 // ==========================================
+// ==========================================
+// 10. GESTIÓN DEL PERFIL PROFESIONAL
+// ==========================================
 window.guardarCoche = async function() {
     const inputCoche = document.getElementById('input-coche');
     if(!inputCoche) return;
     
     const vehiculo = inputCoche.value.trim();
 
-    // 🛑 El freno de mano: Si está vacío, no pasa
-    if (vehiculo === "") {
-        mostrarNotificacionFlotante("⚠️ ¡Frena! Escribe el modelo antes de guardar.", "#e74c3c");
-        inputCoche.focus(); // Ponemos el cursor en la caja para que escriba
+    // 🛑 VALIDACIÓN ESTRICTA: Exigimos que haya al menos 2 palabras y 8 letras
+    const palabras = vehiculo.split(/\s+/);
+    if (vehiculo.length < 8 || palabras.length < 2) {
+        mostrarNotificacionFlotante("⚠️ Formato incorrecto. Pon Marca y Modelo (Ej: Audi A3)", "#e74c3c");
+        inputCoche.focus(); 
         return; 
     }
 
-    // 🟢 Si hay texto, lo guardamos (Más adelante lo conectaremos con Supabase)
-    console.log("Aparcando coche en la base de datos:", vehiculo);
-    mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
+    if (!sessionActiva) {
+        mostrarNotificacionFlotante("🔒 Inicia sesión para poder guardar tu coche.", "#f39c12");
+        return;
+    }
+
+    const btn = event.target;
+    const txtOriginal = btn.innerText;
+    btn.innerText = "Guardando... ⏳";
+    btn.disabled = true;
+
+    // 🟢 ENVIANDO A SUPABASE DE VERDAD
+    // Cogemos la primera palabra como marca (ej: "Audi") y todo el texto como modelo
+    const marcaCoche = palabras[0].toUpperCase();
+
+    const { error } = await clienteSupabase.from('coches_clientes').insert([
+        { user_id: usuarioId, marca: marcaCoche, modelo: vehiculo }
+    ]);
+
+    if (error) {
+        console.error("Error al guardar coche:", error);
+        mostrarNotificacionFlotante("❌ Hubo un error de conexión con el servidor", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
+        inputCoche.value = ""; 
+    }
     
-    // Limpiamos la caja para que quede bonito
-    inputCoche.value = ""; 
+    btn.innerText = txtOriginal;
+    btn.disabled = false;
 };
 
 });
