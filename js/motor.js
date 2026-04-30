@@ -678,18 +678,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ==========================================
 // 10. GESTIÓN DEL PERFIL PROFESIONAL
 // ==========================================
-// ==========================================
-// 10. GESTIÓN DEL PERFIL PROFESIONAL
-// ==========================================
 window.guardarCoche = async function() {
     const inputCoche = document.getElementById('input-coche');
     if(!inputCoche) return;
     
     const vehiculo = inputCoche.value.trim();
 
-    // 🛑 VALIDACIÓN ESTRICTA: Exigimos que haya al menos 2 palabras y 8 letras
+    // 🛑 VALIDACIÓN CORREGIDA: Exigimos 2 palabras y mínimo 5 letras (para que entren "Audi A3" o "BMW X1")
     const palabras = vehiculo.split(/\s+/);
-    if (vehiculo.length < 8 || palabras.length < 2) {
+    if (vehiculo.length < 5 || palabras.length < 2) {
         mostrarNotificacionFlotante("⚠️ Formato incorrecto. Pon Marca y Modelo (Ej: Audi A3)", "#e74c3c");
         inputCoche.focus(); 
         return; 
@@ -706,7 +703,6 @@ window.guardarCoche = async function() {
     btn.disabled = true;
 
     // 🟢 ENVIANDO A SUPABASE DE VERDAD
-    // Cogemos la primera palabra como marca (ej: "Audi") y todo el texto como modelo
     const marcaCoche = palabras[0].toUpperCase();
 
     const { error } = await clienteSupabase.from('coches_clientes').insert([
