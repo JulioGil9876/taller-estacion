@@ -714,7 +714,8 @@ window.guardarCoche = async function() {
         mostrarNotificacionFlotante("❌ Hubo un error de conexión con el servidor", "#e74c3c");
     } else {
         mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
-        inputCoche.value = ""; 
+        inputCoche.value = "";
+        cargarMisCoches(); // Recargamos la lista de coches para mostrar el nuevo
     }
     
     btn.innerText = txtOriginal;
@@ -722,3 +723,116 @@ window.guardarCoche = async function() {
 };
 
 });
+
+// ==========================================
+// 11. SISTEMA AVANZADO DE GARAJE
+// ==========================================
+
+// Cargar los coches de la base de datos al entrar
+window.cargarMisCoches = async function() {
+    const contenedor = document.getElementById('lista-mis-coches');
+    const filtroGaraje = document.getElementById('filtro-garaje');
+    
+    if (!sessionActiva || !usuarioId) return;
+
+    const { data: coches, error } = await clienteSupabase
+        .from('coches_clientes')
+        .select('*')
+        .eq('user_id', usuarioId);
+
+    if (error) {
+        console.error("Error cargando coches:", error);
+        return;
+    }
+
+    // 1. Mostrar en el perfil
+    if (contenedor) {
+        contenedor.innerHTML = "";
+        if (coches.length === 0) {
+            contenedor.innerHTML = "<p style='color: #7f8c8d;'>Tu garaje está vacío. ¡Añade tu primer coche arriba!</p>";
+        } else {
+            coches.forEach(coche => {
+                contenedor.innerHTML += `
+                    <div class="card-coche">
+                        <h4>${coche.modelo}</h4>
+                        <button class="btn-piezas" onclick="buscarPiezasRapido('${coche.modelo}')">🔍 Ver piezas compatibles</button>
+                        <div class="acciones-coche">
+                            <button class="btn-editar" onclick="editarCoche('${coche.id}', '${coche.modelo}')">✏️ Editar</button>
+                            <button class="btn-borrar" onclick="borrarCoche('${coche.id}', '${coche.modelo}')">🗑️ Borrar</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    // 2. Llenar el desplegable de filtros en la tienda
+    if (filtroGaraje) {
+        filtroGaraje.style.display = "inline-block"; // Lo mostramos porque está logueado
+        filtroGaraje.innerHTML = '<option value="">🚗 Filtrar piezas para mi coche...</option>';
+        coches.forEach(coche => {
+            filtroGaraje.innerHTML += `<option value="${coche.modelo}">${coche.modelo}</option>`;
+        });
+    }
+};
+
+// Borrar coche con confirmación
+window.borrarCoche = async function(id, nombre) {
+    // Aquí hacemos la pregunta de Sí o No
+    const confirmacion = confirm(`¿Estás seguro de que quieres enviar tu ${nombre} al desguace? \n\nDale a Aceptar para SÍ, o Cancelar para NO.`);
+    
+    if (confirmacion) {
+        const { error } = await clienteSupabase.from('coches_clientes').delete().eq('id', id);
+        if (!error) {
+            mostrarNotificacionFlotante("🚗 Coche eliminado del garaje", "#e74c3c");
+            cargarMisCoches(); // Recargamos la lista
+        }
+    }
+};
+
+// Editar coche con validación
+window.editarCoche = async function(id, nombreAntiguo) {
+    const nuevoNombre = prompt("Modifica el nombre de tu vehículo (Marca y Modelo):", nombreAntiguo);
+    
+    // Si le da a cancelar o lo deja en blanco, no hacemos nada
+    if (!nuevoNombre || nuevoNombre === nombreAntiguo) return;
+
+    const vehiculo = nuevoNombre.trim();
+    const palabras = vehiculo.split(/\s+/);
+
+    // Validación estricta igual que al guardar
+    if (vehiculo.length < 5 || palabras.length < 2) {
+        alert("⚠️ Error: Formato incorrecto. Debe tener Marca y Modelo (Ej: Audi A3)");
+        return;
+    }
+
+    const marcaCoche = palabras[0].toUpperCase();
+
+    const { error } = await clienteSupabase
+        .from('coches_clientes')
+        .update({ marca: marcaCoche, modelo: vehiculo })
+        .eq('id', id);
+
+    if (!error) {
+        mostrarNotificacionFlotante("✅ Vehículo modificado con éxito", "#27ae60");
+        cargarMisCoches(); // Recargamos la lista
+    }
+};
+
+// FUNCIÓN GUAY: Buscar piezas automáticamente
+window.buscarPiezasRapido = function(modelo) {
+    // Si estamos en perfil.html, le mandamos a la tienda
+    if (!window.location.href.includes("recambios.html") && !window.location.href.includes("index.html")) {
+        window.location.href = `recambios.html?coche=${encodeURIComponent(modelo)}`;
+        return;
+    }
+    
+    // Si ya estamos en la tienda, escribimos en el buscador y filtramos
+    const buscador = document.getElementById('buscador');
+    if (buscador) {
+        buscador.value = modelo;
+        // Aquí llamaríamos a tu función de filtrar que ya tengas hecha, por ejemplo:
+        // filtrarProductos(); 
+        mostrarNotificacionFlotante(`Buscando piezas para: ${modelo}`, "#3498db");
+    }
+};
