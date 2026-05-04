@@ -455,30 +455,67 @@ window.eliminarDelCarrito = (index) => {
     actualizarInterfazCarrito(); 
 }
 
-window.comprobarCheckout = () => {
+// 🚀 ESTRUCTURA DE PAGO Y CREACIÓN DE PEDIDOS
+window.comprobarCheckout = async () => {
     if (carrito.length === 0) {
         mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
         return;
     }
+    
     if (!sessionActiva) {
         mostrarNotificacionFlotante("🔒 Inicia sesión para tramitar el pago", "#f39c12");
         window.cerrarPanelCarrito(); 
         window.abrirLogin();
-    } else { 
-        const btnCheckout = document.querySelector('#footer-carrito button');
-        const txtOriginal = btnCheckout.innerHTML;
-        btnCheckout.innerHTML = "Conectando con Pasarela Segura... 🔒";
-        btnCheckout.style.background = "#27ae60";
-        btnCheckout.disabled = true;
+        return; // Frenamos aquí si no está logueado
+    } 
+    
+    const btnCheckout = document.querySelector('#footer-carrito button');
+    const txtOriginal = btnCheckout.innerHTML;
+    btnCheckout.innerHTML = "Procesando pedido... ⏳";
+    btnCheckout.style.background = "#27ae60";
+    btnCheckout.disabled = true;
 
+    // 1. Calculamos el total de la cesta
+    let sumaTotal = 0;
+    carrito.forEach(p => {
+        let prec = p.precio ? parseFloat(p.precio.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
+        sumaTotal += isNaN(prec) ? 0 : prec;
+    });
+
+    // 2. Enviamos el pedido a Supabase
+    const { error } = await clienteSupabase.from('pedidos').insert([
+        { 
+            user_id: usuarioId, 
+            total: sumaTotal, 
+            articulos: carrito // ¡Aquí se guarda toda la lista de piezas de golpe!
+        }
+    ]);
+
+    if (error) {
+        console.error("Error al crear pedido:", error);
+        mostrarNotificacionFlotante("❌ Hubo un error de conexión con el banco", "#e74c3c");
+        btnCheckout.innerHTML = txtOriginal;
+        btnCheckout.style.background = "#e74c3c";
+        btnCheckout.disabled = false;
+    } else {
+        // 3. ¡Éxito! Vaciamos el carrito y cerramos
+        mostrarNotificacionFlotante("✅ ¡Pedido guardado con éxito!", "#27ae60");
+        
+        carrito = []; // Vaciamos la memoria
+        localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Guardamos el carrito vacío
+        actualizarInterfazCarrito(); // Actualizamos los números rojos
+        
         setTimeout(() => {
-            alert("💳 ESTRUCTURA STRIPE LISTA\n\nAquí el usuario será redirigido automáticamente a la ventana de pago seguro de Stripe para introducir su tarjeta.");
+            window.cerrarPanelCarrito();
             btnCheckout.innerHTML = txtOriginal;
             btnCheckout.style.background = "#e74c3c";
             btnCheckout.disabled = false;
-        }, 2000);
+            
+            // Este aviso temporal lo quitaremos cuando pongamos el pago de verdad
+            alert("🎉 ¡ENHORABUENA! El pedido acaba de entrar a la base de datos.\n\nEn el siguiente paso conectaremos la pasarela de Stripe aquí mismo para cobrar de verdad.");
+        }, 1500);
     }
-}
+};
 
 // ==========================================
 // 8. SISTEMA DE USUARIOS Y LOGIN
