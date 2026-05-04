@@ -59,28 +59,32 @@
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div class="stat-card">
                         <span style="font-size: 2em;">📦</span>
-                        <h3>0</h3>
-                        <p style="color: #7f8c8d; font-weight: bold;">Pedidos Activos</p>
+                        <h3>Pedidos</h3>
+                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;" onclick="abrirPestanaPerfil('tab-pedidos')">Ver historial completo</p>
                     </div>
                     <div class="stat-card">
                         <span style="font-size: 2em;">🚗</span>
-                        <h3>0</h3>
-                        <p style="color: #7f8c8d; font-weight: bold;">Coches Registrados</p>
+                        <h3>Garaje</h3>
+                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;" onclick="abrirPestanaPerfil('tab-garaje')">Gestionar mis coches</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Pestaña 2: Pedidos -->
+            <!-- Pestaña 2: Pedidos (AQUÍ ES DONDE SE CARGARÁN TUS TICKETS) -->
             <div id="tab-pedidos" class="contenido-perfil-tab" style="display: none;">
                 <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Historial de Pedidos</h2>
-                <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
-                    <span style="font-size: 3em; opacity: 0.5;">🧾</span>
-                    <p style="color: #7f8c8d; font-size: 1.1em; margin-top: 10px;">Aún no has realizado ninguna compra.</p>
-                    <a href="recambios.html" class="btn-rojo" style="margin-top: 15px;">Ir al catálogo</a>
+                
+                <div id="lista-mis-pedidos" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Si no hay pedidos cargados por motor.js, sale esto por defecto -->
+                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
+                        <span style="font-size: 3em; opacity: 0.5;">🧾</span>
+                        <p style="color: #7f8c8d; font-size: 1.1em; margin-top: 10px;">Aún no has realizado ninguna compra o estamos cargando el historial...</p>
+                        <a href="recambios.html" class="btn-rojo" style="margin-top: 15px; display: inline-block;">Ir al catálogo</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Pestaña 3: Garaje (NUEVO ID PARA EL COCHE) -->
+            <!-- Pestaña 3: Garaje -->
             <div id="tab-garaje" class="contenido-perfil-tab" style="display: none;">
                 <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Mi Garaje</h2>
                 <p style="color: #636e72;">Registra tu vehículo aquí y te mostraremos automáticamente solo las piezas que sean compatibles.</p>
@@ -100,8 +104,15 @@
                 <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Ajustes de Seguridad</h2>
                 <div style="background: #fdf2f2; padding: 20px; border-radius: 8px; border: 1px solid #fadbd8;">
                     <h4 style="color: #e74c3c; margin-top: 0;">Cambiar Contraseña</h4>
-                    <p style="font-size: 0.9em; color: #7f8c8d;">Te enviaremos un correo electrónico seguro con un enlace para restablecer tu contraseña.</p>
-                    <button class="btn-rojo" onclick="recuperarPass()" style="background: #e74c3c; margin-top: 10px;">✉️ Solicitar Cambio</button>
+                    <p style="font-size: 0.9em; color: #7f8c8d;">Para cambiar tu contraseña, usaremos el mismo email seguro de tu cuenta.</p>
+                    
+                    <!-- Formulario de recuperación conectado al sistema -->
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="email" id="email-login" placeholder="Tu email actual" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+                        <button class="btn-rojo" id="btn-accion-login" onclick="recuperarPass()" style="background: #e74c3c; white-space: nowrap;">✉️ Solicitar Cambio</button>
+                    </div>
+                    <div id="mensaje-auth" style="display: none; margin-top: 10px; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.9em;"></div>
+
                 </div>
             </div>
 

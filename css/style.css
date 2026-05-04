@@ -123,3 +123,17 @@ body { background-color: var(--fondo-gris); color: var(--texto); line-height: 1.
 .btn-editar, .btn-borrar { flex: 1; padding: 5px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
 .btn-editar { background: #f39c12; color: white; }
 .btn-borrar { background: #e74c3c; color: white; }
+
+/* Estilos para el Historial de Pedidos */
+.tarjeta-pedido { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.cabecera-pedido { background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.info-pedido p { margin: 0; color: #636e72; font-size: 0.9em; }
+.info-pedido strong { color: #2c3e50; }
+.estado-pedido { background: #e3fcf7; color: #00b894; font-weight: bold; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; }
+.cuerpo-pedido { padding: 20px; }
+.articulo-pedido { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+.articulo-pedido:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.articulo-pedido img { width: 60px; height: 60px; object-fit: contain; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; }
+.articulo-info h4 { margin: 0 0 5px 0; font-size: 1em; color: #2c3e50; }
+.articulo-info span { color: #7f8c8d; font-size: 0.85em; font-family: monospace; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; }
+.pie-pedido { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }

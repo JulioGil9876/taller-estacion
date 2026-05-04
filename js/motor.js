@@ -636,6 +636,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("🚗 Descargando mis coches...");
         await cargarMisCoches();
 
+        console.log("📦 Descargando historial de pedidos...");
+        await cargarMisPedidos();
+
         const btnU = document.querySelectorAll('#btn-usuario-nav'); 
         btnU.forEach(btn => {
             btn.innerHTML = `⚙️ Mi Panel de Control`;
@@ -906,4 +909,87 @@ window.filtrarPorMiCoche = function() {
     cocheActual = select.value; 
     paginaActual = 1; 
     renderizarVista(); 
+};
+
+// ==========================================
+// 12. HISTORIAL DE PEDIDOS
+// ==========================================
+window.cargarMisPedidos = async function() {
+    const contenedor = document.getElementById('lista-mis-pedidos');
+    if (!contenedor || !sessionActiva || !usuarioId) return;
+
+    // Pedimos a Supabase los pedidos, ordenados del más nuevo al más antiguo
+    const { data: pedidos, error } = await clienteSupabase
+        .from('pedidos')
+        .select('*')
+        .eq('user_id', usuarioId)
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error("Error cargando pedidos:", error);
+        contenedor.innerHTML = "<p style='color: #e74c3c;'>❌ Error al cargar el historial.</p>";
+        return;
+    }
+
+    if (pedidos.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
+                <span style="font-size: 3em;">🛒</span>
+                <p style="color: #7f8c8d; margin-top: 10px;">Aún no has realizado ninguna compra.</p>
+                <button onclick="window.location.href='recambios.html'" class="btn-rojo" style="margin-top: 15px; padding: 10px 20px;">Ir a la tienda</button>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    
+    // Recorremos cada pedido y fabricamos el "Ticket"
+    pedidos.forEach(pedido => {
+        // Formatear la fecha para que sea legible (ej: "4 de mayo de 2026")
+        const fechaObj = new Date(pedido.fecha);
+        const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+        const fechaBonita = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
+
+        // Generar la lista de piezas compradas en este pedido
+        let articulosHtml = '';
+        const listaArticulos = pedido.articulos || []; // La caja fuerte donde guardamos la cesta
+        
+        listaArticulos.forEach(art => {
+            articulosHtml += `
+                <div class="articulo-pedido">
+                    <img src="${art.foto_url || 'https://via.placeholder.com/60'}" alt="Foto pieza">
+                    <div class="articulo-info" style="flex-grow: 1;">
+                        <h4>${art.titulo || 'Pieza'}</h4>
+                        <span>Ref: ${art.referencia || 'N/A'}</span>
+                    </div>
+                    <div style="font-weight: bold; color: #e74c3c; font-size: 1.1em;">
+                        ${art.precio || '0€'}
+                    </div>
+                </div>
+            `;
+        });
+
+        // Montar la tarjeta completa
+        html += `
+            <div class="tarjeta-pedido">
+                <div class="cabecera-pedido">
+                    <div class="info-pedido">
+                        <p><strong>Pedido realizado:</strong> ${fechaBonita}</p>
+                        <p><strong>ID Pedido:</strong> <span style="font-family: monospace; font-size:0.9em; color:#7f8c8d;">#${pedido.id.split('-')[0].toUpperCase()}</span></p>
+                    </div>
+                    <div class="estado-pedido">📦 ${pedido.estado}</div>
+                </div>
+                <div class="cuerpo-pedido">
+                    ${articulosHtml}
+                </div>
+                <div class="pie-pedido">
+                    <span style="color: #7f8c8d; font-size: 0.9em; margin-right: 15px;">Total pagado:</span>
+                    <span style="font-size: 1.5em; font-weight: 900; color: #2c3e50;">${Number(pedido.total).toFixed(2)}€</span>
+                </div>
+            </div>
+        `;
+    });
+
+    contenedor.innerHTML = html;
 };
