@@ -589,7 +589,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error("Fallo favoritos:", err);
         }
-        
+        console.log("🚗 Descargando mis coches...");
+        await cargarMisCoches();
+
         const btnU = document.querySelectorAll('#btn-usuario-nav'); 
         btnU.forEach(btn => {
             btn.innerHTML = `⚙️ Mi Panel de Control`;
@@ -776,48 +778,77 @@ window.cargarMisCoches = async function() {
     }
 };
 
-// Borrar coche con confirmación
-window.borrarCoche = async function(id, nombre) {
-    // Aquí hacemos la pregunta de Sí o No
-    const confirmacion = confirm(`¿Estás seguro de que quieres enviar tu ${nombre} al desguace? \n\nDale a Aceptar para SÍ, o Cancelar para NO.`);
-    
-    if (confirmacion) {
-        const { error } = await clienteSupabase.from('coches_clientes').delete().eq('id', id);
-        if (!error) {
-            mostrarNotificacionFlotante("🚗 Coche eliminado del garaje", "#e74c3c");
-            cargarMisCoches(); // Recargamos la lista
-        }
+// ==========================================
+// VENTANAS FLOTANTES (MODALES) PARA EL GARAJE
+// ==========================================
+function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
+    let modal = document.getElementById('modal-garaje-custom');
+    if (!modal) {
+        // Si no existe, creamos la ventana de cero
+        modal = document.createElement('div');
+        modal.id = 'modal-garaje-custom';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+        modal.innerHTML = `
+            <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:400px; width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.2); transform:scale(0.9); transition:0.2s;" id="caja-modal-garaje">
+                <h3 id="titulo-modal-garaje" style="margin-top:0; color:#2c3e50; font-size:1.5em;">Título</h3>
+                <p id="texto-modal-garaje" style="color:#636e72; margin-bottom:20px;">Texto</p>
+                <input type="text" id="input-modal-garaje" style="display:none; width:90%; padding:12px; margin:0 auto 20px auto; border:2px solid #ddd; border-radius:8px; font-size:1.1em; text-align:center;" placeholder="Ej: Audi A3">
+                <div style="display:flex; gap:10px;">
+                    <button onclick="cerrarModalGaraje()" style="flex:1; padding:12px; border:none; background:#f1f2f6; color:#2d3436; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1em;">Cancelar</button>
+                    <button id="btn-modal-garaje" style="flex:1; padding:12px; border:none; color:white; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1em;">Aceptar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
+
+    const titulo = document.getElementById('titulo-modal-garaje');
+    const texto = document.getElementById('texto-modal-garaje');
+    const input = document.getElementById('input-modal-garaje');
+    const btn = document.getElementById('btn-modal-garaje');
+    const caja = document.getElementById('caja-modal-garaje');
+
+    modal.style.display = 'flex';
+    setTimeout(() => caja.style.transform = 'scale(1)', 10);
+
+    if (tipo === 'borrar') {
+        titulo.innerHTML = "🗑️ ¿Al desguace?";
+        texto.innerText = `¿Seguro que quieres borrar tu ${nombreCoche} del garaje? Esta acción no se puede deshacer.`;
+        input.style.display = 'none';
+        btn.style.background = '#e74c3c';
+        btn.innerText = 'Sí, Borrar';
+        btn.onclick = async () => {
+            cerrarModalGaraje();
+            const { error } = await clienteSupabase.from('coches_clientes').delete().eq('id', idCoche);
+            if (!error) { mostrarNotificacionFlotante("🚗 Coche eliminado", "#e74c3c"); cargarMisCoches(); }
+        };
+    } else if (tipo === 'editar') {
+        titulo.innerHTML = "✏️ Editar Vehículo";
+        texto.innerText = "Modifica la marca y modelo de tu coche:";
+        input.style.display = 'block'; input.value = nombreCoche;
+        btn.style.background = '#27ae60';
+        btn.innerText = 'Guardar Cambios';
+        btn.onclick = async () => {
+            const nuevoNombre = input.value.trim();
+            if (!nuevoNombre || nuevoNombre === nombreCoche) return cerrarModalGaraje();
+            const palabras = nuevoNombre.split(/\s+/);
+            if (nuevoNombre.length < 5 || palabras.length < 2) return alert("⚠️ Formato incorrecto. Pon Marca y Modelo (Ej: Audi A3)");
+            
+            cerrarModalGaraje();
+            const { error } = await clienteSupabase.from('coches_clientes').update({ marca: palabras[0].toUpperCase(), modelo: nuevoNombre }).eq('id', idCoche);
+            if (!error) { mostrarNotificacionFlotante("✅ Vehículo actualizado", "#27ae60"); cargarMisCoches(); }
+        };
+    }
+}
+
+window.cerrarModalGaraje = function() {
+    const modal = document.getElementById('modal-garaje-custom');
+    const caja = document.getElementById('caja-modal-garaje');
+    if(modal && caja) { caja.style.transform = 'scale(0.9)'; setTimeout(() => modal.style.display = 'none', 150); }
 };
 
-// Editar coche con validación
-window.editarCoche = async function(id, nombreAntiguo) {
-    const nuevoNombre = prompt("Modifica el nombre de tu vehículo (Marca y Modelo):", nombreAntiguo);
-    
-    // Si le da a cancelar o lo deja en blanco, no hacemos nada
-    if (!nuevoNombre || nuevoNombre === nombreAntiguo) return;
-
-    const vehiculo = nuevoNombre.trim();
-    const palabras = vehiculo.split(/\s+/);
-
-    // Validación estricta igual que al guardar
-    if (vehiculo.length < 5 || palabras.length < 2) {
-        alert("⚠️ Error: Formato incorrecto. Debe tener Marca y Modelo (Ej: Audi A3)");
-        return;
-    }
-
-    const marcaCoche = palabras[0].toUpperCase();
-
-    const { error } = await clienteSupabase
-        .from('coches_clientes')
-        .update({ marca: marcaCoche, modelo: vehiculo })
-        .eq('id', id);
-
-    if (!error) {
-        mostrarNotificacionFlotante("✅ Vehículo modificado con éxito", "#27ae60");
-        cargarMisCoches(); // Recargamos la lista
-    }
-};
+window.borrarCoche = (id, nombre) => mostrarModalGaraje('borrar', id, nombre);
+window.editarCoche = (id, nombre) => mostrarModalGaraje('editar', id, nombre);
 
 // FUNCIÓN GUAY: Buscar piezas automáticamente
 window.buscarPiezasRapido = function(modelo) {
@@ -835,4 +866,28 @@ window.buscarPiezasRapido = function(modelo) {
         // filtrarProductos(); 
         mostrarNotificacionFlotante(`Buscando piezas para: ${modelo}`, "#3498db");
     }
+};
+// ==========================================
+// FUNCIÓN PARA FILTRAR POR COCHE DEL GARAJE
+// ==========================================
+window.filtrarPorMiCoche = function() {
+    const select = document.getElementById('filtro-garaje');
+    if(!select) return;
+    
+    const modeloSeleccionado = select.value;
+    const inputBusqueda = document.getElementById('input-busqueda'); // Tu buscador de la web
+    
+    if (modeloSeleccionado === "") {
+        // Si elige la opción "Filtrar piezas...", borramos el filtro
+        busquedaActual = "";
+        if (inputBusqueda) inputBusqueda.value = "";
+    } else {
+        // Si elige su coche, se lo mandamos al motor de búsqueda automáticamente
+        busquedaActual = modeloSeleccionado;
+        if (inputBusqueda) inputBusqueda.value = modeloSeleccionado;
+        mostrarNotificacionFlotante(`🔍 Buscando piezas para: ${modeloSeleccionado}`, "#3498db");
+    }
+    
+    paginaActual = 1; // Volvemos a la página 1
+    renderizarVista(); // Recargamos el escaparate
 };
