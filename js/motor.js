@@ -14,6 +14,7 @@ let inventarioNube = [];
 let rutaActual = 'inicio';
 let filtroActual = 'todos';
 let busquedaActual = ''; 
+let cocheActual = ''; // NUEVO: MEMORIA DEL COCHE DEL GARAJE
 let criterioOrden = 'nuevo';
 
 // MEMORIA DE USUARIO, FAVORITOS Y CARRITO
@@ -133,6 +134,10 @@ function actualizarEtiquetasFiltros() {
     let html = '';
     if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
     if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
+    
+    // NUEVO: LA ETIQUETA CHIP DEL COCHE DEL GARAJE
+    if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;" title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
+    
     contenedor.innerHTML = html;
 }
 
@@ -159,6 +164,12 @@ window.quitarFiltro = (tipo) => {
         const btnTodas = document.querySelector('.btn-marca-filtro[onclick*="todas"]');
         if(btnTodas) { btnTodas.style.background = '#2c3e50'; btnTodas.style.color = 'white'; }
     }
+    // NUEVO: PARA BORRAR EL CHIP DEL COCHE
+    if (tipo === 'coche') {
+        cocheActual = ''; 
+        const selectGaraje = document.getElementById('filtro-garaje');
+        if (selectGaraje) selectGaraje.value = ''; 
+    }
     renderizarVista();
 }
 
@@ -169,8 +180,6 @@ function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
 
-    // 1. EL "ESCUDO" DE CARGA PROFESIONAL
-    // Usamos la variable cargandoInventario para saber si de verdad estamos descargando
     if (cargandoInventario) {
         contenedor.innerHTML = `
             <div style="grid-column: 1 / -1; text-align:center; padding:80px 20px; background:white; border-radius:15px; border:1px solid #eee; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
@@ -182,7 +191,6 @@ function renderizarVista() {
         return; 
     }
 
-    // 2. GESTIÓN DEL PERFIL
     if (sessionActiva && rutaActual === 'perfil') {
         if (typeof dibujarPanelPerfil === 'function') {
             dibujarPanelPerfil(contenedor);
@@ -193,18 +201,20 @@ function renderizarVista() {
     }
 
     const termino = busquedaActual.toLowerCase();
-    
-    // 3. ASEGURAR FAVORITOS
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
-    // 4. FILTRADO
+    // 4. FILTRADO (AHORA CON EL COCHE DEL GARAJE INCORPORADO)
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
         let textoBusqueda = ((p.titulo||'') + (p.marca||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
-        return r && f && b;
+        
+        // REGLA DEL COCHE DEL GARAJE:
+        let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
+
+        return r && f && b && c;
     });
 
     filtradas.sort((a, b) => {
@@ -445,7 +455,6 @@ window.eliminarDelCarrito = (index) => {
     actualizarInterfazCarrito(); 
 }
 
-// 🚀 ESTRUCTURA DE PAGO SEGURO (Stripe)
 window.comprobarCheckout = () => {
     if (carrito.length === 0) {
         mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
@@ -463,7 +472,7 @@ window.comprobarCheckout = () => {
         btnCheckout.disabled = true;
 
         setTimeout(() => {
-            alert("💳 ESTRUCTURA STRIPE LISTA\n\nAquí el usuario será redirigido automáticamente a la ventana de pago seguro de Stripe para introducir su tarjeta (Apple Pay / Google Pay).");
+            alert("💳 ESTRUCTURA STRIPE LISTA\n\nAquí el usuario será redirigido automáticamente a la ventana de pago seguro de Stripe para introducir su tarjeta.");
             btnCheckout.innerHTML = txtOriginal;
             btnCheckout.style.background = "#e74c3c";
             btnCheckout.disabled = false;
@@ -572,7 +581,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     actualizarInterfazCarrito();
     console.log("🚀 ARRANCANDO MOTOR LINEAL...");
 
-    // 🛑 PASO 1: COMPROBAR SESIÓN DE FORMA MANUAL (SIN EVENTOS LOCOS)
     const { data: authData, error: authErr } = await clienteSupabase.auth.getSession();
     const session = authData.session;
 
@@ -585,7 +593,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const { data, error } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
             if (data) favoritosNube = data.map(f => f.product_ref);
-            console.log("❤️ Favoritos cargados:", favoritosNube.length);
         } catch (err) {
             console.error("Fallo favoritos:", err);
         }
@@ -613,13 +620,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.location.pathname.includes('perfil.html')) window.location.href = 'index.html';
     }
 
-    // 🛑 PASO 2: SOLO CUANDO SE HA RESUELTO LA SESIÓN, DESCARGAMOS PIEZAS
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // 🛑 PASO 3: DEJAR UN CHIVATO POR SI EL USUARIO HACE LOGIN/LOGOUT AHORA
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
-        // Si alguien inicia sesión o sale de ella de repente, recargamos la web entera para que haga el Paso 1 limpio
         if (event === 'SIGNED_IN' && !sessionActiva) {
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
@@ -627,7 +631,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- (Resto de botones y buscadores) ---
     const inputPass = document.getElementById('pass-login');
     if(inputPass) {
         inputPass.addEventListener('input', (e) => {
@@ -667,7 +670,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const inputB = document.getElementById('input-busqueda');
-    // Solución al fallo que me decías del "Search endpoint requested!"
     if (inputB) {
         const formPadre = inputB.closest('form');
         if (formPadre) formPadre.addEventListener('submit', (e) => e.preventDefault());
@@ -677,6 +679,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
+
 // ==========================================
 // 10. GESTIÓN DEL PERFIL PROFESIONAL
 // ==========================================
@@ -686,7 +689,6 @@ window.guardarCoche = async function() {
     
     const vehiculo = inputCoche.value.trim();
 
-    // 🛑 VALIDACIÓN CORREGIDA: Exigimos 2 palabras y mínimo 5 letras (para que entren "Audi A3" o "BMW X1")
     const palabras = vehiculo.split(/\s+/);
     if (vehiculo.length < 5 || palabras.length < 2) {
         mostrarNotificacionFlotante("⚠️ Formato incorrecto. Pon Marca y Modelo (Ej: Audi A3)", "#e74c3c");
@@ -704,7 +706,6 @@ window.guardarCoche = async function() {
     btn.innerText = "Guardando... ⏳";
     btn.disabled = true;
 
-    // 🟢 ENVIANDO A SUPABASE DE VERDAD
     const marcaCoche = palabras[0].toUpperCase();
 
     const { error } = await clienteSupabase.from('coches_clientes').insert([
@@ -717,7 +718,7 @@ window.guardarCoche = async function() {
     } else {
         mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
         inputCoche.value = "";
-        cargarMisCoches(); // Recargamos la lista de coches para mostrar el nuevo
+        cargarMisCoches(); 
     }
     
     btn.innerText = txtOriginal;
@@ -729,8 +730,6 @@ window.guardarCoche = async function() {
 // ==========================================
 // 11. SISTEMA AVANZADO DE GARAJE
 // ==========================================
-
-// Cargar los coches de la base de datos al entrar
 window.cargarMisCoches = async function() {
     const contenedor = document.getElementById('lista-mis-coches');
     const filtroGaraje = document.getElementById('filtro-garaje');
@@ -747,7 +746,6 @@ window.cargarMisCoches = async function() {
         return;
     }
 
-    // 1. Mostrar en el perfil
     if (contenedor) {
         contenedor.innerHTML = "";
         if (coches.length === 0) {
@@ -768,9 +766,8 @@ window.cargarMisCoches = async function() {
         }
     }
 
-    // 2. Llenar el desplegable de filtros en la tienda
     if (filtroGaraje) {
-        filtroGaraje.style.display = "inline-block"; // Lo mostramos porque está logueado
+        filtroGaraje.style.display = "inline-block"; 
         filtroGaraje.innerHTML = '<option value="">🚗 Filtrar piezas para mi coche...</option>';
         coches.forEach(coche => {
             filtroGaraje.innerHTML += `<option value="${coche.modelo}">${coche.modelo}</option>`;
@@ -784,7 +781,6 @@ window.cargarMisCoches = async function() {
 function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
     let modal = document.getElementById('modal-garaje-custom');
     if (!modal) {
-        // Si no existe, creamos la ventana de cero
         modal = document.createElement('div');
         modal.id = 'modal-garaje-custom';
         modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
@@ -850,23 +846,19 @@ window.cerrarModalGaraje = function() {
 window.borrarCoche = (id, nombre) => mostrarModalGaraje('borrar', id, nombre);
 window.editarCoche = (id, nombre) => mostrarModalGaraje('editar', id, nombre);
 
-// FUNCIÓN GUAY: Buscar piezas automáticamente
 window.buscarPiezasRapido = function(modelo) {
-    // Si estamos en perfil.html, le mandamos a la tienda
     if (!window.location.href.includes("recambios.html") && !window.location.href.includes("index.html")) {
         window.location.href = `recambios.html?coche=${encodeURIComponent(modelo)}`;
         return;
     }
     
-    // Si ya estamos en la tienda, escribimos en el buscador y filtramos
-    const buscador = document.getElementById('buscador');
-    if (buscador) {
-        buscador.value = modelo;
-        // Aquí llamaríamos a tu función de filtrar que ya tengas hecha, por ejemplo:
-        // filtrarProductos(); 
-        mostrarNotificacionFlotante(`Buscando piezas para: ${modelo}`, "#3498db");
+    const selectGaraje = document.getElementById('filtro-garaje');
+    if (selectGaraje) {
+        selectGaraje.value = modelo;
+        filtrarPorMiCoche();
     }
 };
+
 // ==========================================
 // FUNCIÓN PARA FILTRAR POR COCHE DEL GARAJE
 // ==========================================
@@ -874,20 +866,7 @@ window.filtrarPorMiCoche = function() {
     const select = document.getElementById('filtro-garaje');
     if(!select) return;
     
-    const modeloSeleccionado = select.value;
-    const inputBusqueda = document.getElementById('input-busqueda'); // Tu buscador de la web
-    
-    if (modeloSeleccionado === "") {
-        // Si elige la opción "Filtrar piezas...", borramos el filtro
-        busquedaActual = "";
-        if (inputBusqueda) inputBusqueda.value = "";
-    } else {
-        // Si elige su coche, se lo mandamos al motor de búsqueda automáticamente
-        busquedaActual = modeloSeleccionado;
-        if (inputBusqueda) inputBusqueda.value = modeloSeleccionado;
-        mostrarNotificacionFlotante(`🔍 Buscando piezas para: ${modeloSeleccionado}`, "#3498db");
-    }
-    
-    paginaActual = 1; // Volvemos a la página 1
-    renderizarVista(); // Recargamos el escaparate
+    cocheActual = select.value; 
+    paginaActual = 1; 
+    renderizarVista(); 
 };

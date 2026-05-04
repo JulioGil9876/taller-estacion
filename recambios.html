@@ -83,26 +83,25 @@
 
             <main class="contenido-derecha" style="flex-grow: 1; width: 100%;">
                 
-                <div class="controles-superiores" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
-                    <div class="buscador-global" style="flex-grow: 1;">
-                        <input type="text" id="input-busqueda" placeholder="🔍 Buscar por nombre, ref o coche..." 
-                               style="width: 100%; padding: 14px; font-size: 1em; border-radius: 10px; border: 1px solid #ddd; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02); box-sizing: border-box;">
-                    </div>
+                <!-- CAJA DE CONTROLES ALINEADOS REPARADA -->
+                <div class="controles-superiores" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; align-items: center; width: 100%;">
                     
-                    <div class="ordenador-global">
-                        <select id="ordenar-por" style="padding: 14px; font-size: 0.95em; border-radius: 10px; border: 1px solid #ddd; background-color: #fff; cursor: pointer; outline: none; color: #333; font-weight: 600;">
-                            <option value="nuevo">✨ Novedades</option>
-                            <option value="barato">📉 Precio: Menor</option>
-                            <option value="caro">📈 Precio: Mayor</option>
-                            <option value="nombre">🔤 Nombre A-Z</option>
-                        </select>
-                        <select id="filtro-garaje" onchange="filtrarPorMiCoche()" style="padding: 12px 15px; border-radius: 8px; border: 2px solid #2c3e50; display: none; font-size: 1.1em; font-weight: bold; color: #2c3e50; background-color: #f8f9fa; cursor: pointer; outline: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; width: 100%;">
-                            <option value="">🚗 Filtrar piezas para mi coche...</option>
-                        </select>
-                    </div>
+                    <input type="text" id="input-busqueda" placeholder="🔍 Buscar por nombre, ref o coche..." 
+                           style="flex: 1; min-width: 200px; padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+
+                    <select id="filtro-garaje" onchange="filtrarPorMiCoche()" style="padding: 12px 15px; border-radius: 8px; border: 2px solid #2c3e50; font-weight: bold; color: #2c3e50; background-color: #f8f9fa; cursor: pointer; outline: none; display: none; max-width: 300px; font-size: 1em;">
+                        <option value="">🚗 Filtrar para mi coche...</option>
+                    </select>
+
+                    <select id="ordenar-por" style="padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; outline: none; color: #333; font-weight: 600;">
+                        <option value="nuevo">✨ Novedades</option>
+                        <option value="barato">📉 Precio: Menor</option>
+                        <option value="caro">📈 Precio: Mayor</option>
+                        <option value="nombre">🔤 Nombre A-Z</option>
+                    </select>
                 </div>
 
-                <div id="etiquetas-filtros-activos" style="margin-bottom: 15px;"></div>
+                <div id="etiquetas-filtros-activos" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;"></div>
 
                 <div id="almacen-piezas" class="grid-recambios"></div>
 
@@ -150,7 +149,6 @@
             <div id="mensaje-auth" style="display: none; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.9em; font-weight: bold;"></div>
 
             <button onclick="loginGoogle()" style="width: 100%; background: white; color: #333; padding: 12px; border: 2px solid #eee; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
-                 <!-- Logo de Google en código (SVG), a prueba de fallos -->
                  <svg viewBox="0 0 48 48" style="width: 20px; height: 20px; display: block;">
                       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"></path>
                       <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
@@ -161,7 +159,6 @@
             </button>
             <div style="display: flex; align-items: center; margin-bottom: 15px; color: #aaa; font-size: 0.8em;"><hr style="flex: 1; border: none; border-top: 1px solid #eee;"><span style="padding: 0 10px;">o con tu email</span><hr style="flex: 1; border: none; border-top: 1px solid #eee;"></div>
 
-            <!-- Aquí está el formulario que evita recargas extrañas -->
             <form onsubmit="event.preventDefault(); procesarAuth();" style="margin: 0; padding: 0;">
                 <input type="email" id="email-login" placeholder="ejemplo@correo.com" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; outline: none; box-sizing: border-box;">
                 <input type="password" id="pass-login" placeholder="Contraseña" required style="width: 100%; padding: 12px; margin-bottom: 5px; border: 2px solid #eee; border-radius: 10px; outline: none; box-sizing: border-box;">
