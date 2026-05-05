@@ -936,7 +936,7 @@ window.cargarMisPedidos = async function() {
         .from('pedidos')
         .select('*')
         .eq('user_id', usuarioId)
-        .neq('estado', 'Pendiente de pago ⏳')
+        .neq('estado', 'Pendiente de pago ⏳') 
         .order('fecha', { ascending: false });
 
     if (error) {
