@@ -448,6 +448,7 @@ window.eliminarDelCarrito = (index) => {
 }
 
 // 🚀 ESTRUCTURA DE PAGO REAL CON STRIPE Y SUPABASE FUNCTIONS
+// 🚀 ESTRUCTURA DE PAGO REAL CON STRIPE Y SUPABASE FUNCTIONS
 window.comprobarCheckout = async () => {
     if (carrito.length === 0) {
         mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
@@ -474,11 +475,16 @@ window.comprobarCheckout = async () => {
         sumaTotal += isNaN(prec) ? 0 : prec;
     });
 
-    // 2. Guardamos el pedido en Supabase para tener el "Ticket" ANTES de pagar
+    // 2. Guardamos el pedido en Supabase (AHORA ENTRA COMO PENDIENTE)
     const { data: pedidoData, error: pedidoError } = await clienteSupabase
         .from('pedidos')
-        .insert([{ user_id: usuarioId, total: sumaTotal, articulos: carrito }])
-        .select(); // IMPORTANTE: Así nos devuelve el ID que acaba de crear
+        .insert([{ 
+            user_id: usuarioId, 
+            total: sumaTotal, 
+            articulos: carrito,
+            estado: 'Pendiente de pago ⏳' // <--- ¡AQUÍ ESTÁ LA MAGIA!
+        }])
+        .select(); 
 
     if (pedidoError || !pedidoData || pedidoData.length === 0) {
         console.error("Error al crear pedido:", pedidoError);
@@ -489,17 +495,15 @@ window.comprobarCheckout = async () => {
         return;
     }
 
-    // Sacamos el ID real de tu base de datos
     const miPedidoId = pedidoData[0].id;
 
-    // Adaptamos los nombres de los productos para que la función de Stripe no se líe
     const carritoParaStripe = carrito.map(p => ({
         nombre: p.titulo || 'Pieza de taller',
         imagen: p.foto_url || 'https://via.placeholder.com/300',
         precio: p.precio || '0'
     }));
 
-    // 3. Llamamos a la "Caja Fuerte" (La función que subiste a Supabase ayer)
+    // 3. Llamamos a la Caja Fuerte
     const { data: stripeData, error: stripeError } = await clienteSupabase.functions.invoke('crear-pago-stripe', {
         body: { pedido_id: miPedidoId, articulos: carritoParaStripe }
     });
@@ -511,12 +515,7 @@ window.comprobarCheckout = async () => {
         btnCheckout.style.background = "#e74c3c";
         btnCheckout.disabled = false;
     } else if (stripeData && stripeData.url) {
-        // 4. ¡Éxito! Vaciamos la cesta temporal...
-        carrito = [];
-        localStorage.setItem('mi_carrito', JSON.stringify(carrito));
-        actualizarInterfazCarrito();
-        
-        // ...y ¡Viaje directo a la pasarela azul de Stripe!
+       
         window.location.href = stripeData.url; 
     } else {
         mostrarNotificacionFlotante("❌ El banco no respondió correctamente", "#e74c3c");
@@ -623,6 +622,15 @@ window.abrirPestanaPerfil = (id) => {
 // 9. EVENTOS GENERALES (ARRANQUE EN LÍNEA RECTA)
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
+
+    document.addEventListener('DOMContentLoaded', async () => {
+    
+    // --- NUEVO: SI VENIMOS DEL BANCO CON ÉXITO, VACIAMOS LA CESTA ---
+    if (window.location.href.includes('session_id=')) {
+        carrito = [];
+        localStorage.setItem('mi_carrito', JSON.stringify(carrito));
+        setTimeout(() => mostrarNotificacionFlotante("🎉 ¡Pago completado con éxito!", "#27ae60"), 500);
+    }
     
     actualizarInterfazCarrito();
     console.log("🚀 ARRANCANDO MOTOR LINEAL...");
@@ -928,6 +936,7 @@ window.cargarMisPedidos = async function() {
         .from('pedidos')
         .select('*')
         .eq('user_id', usuarioId)
+        .neq('estado', 'Pendiente de pago ⏳')
         .order('fecha', { ascending: false });
 
     if (error) {

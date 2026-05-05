@@ -9,3 +9,14 @@ entrypoint = "./functions/crear-pago-stripe/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/crear-pago-stripe/*.html" ]
+
+[functions.webhook-stripe]
+enabled = true
+verify_jwt = true
+import_map = "./functions/webhook-stripe/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/webhook-stripe/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/webhook-stripe/*.html" ]
