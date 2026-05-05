@@ -60,10 +60,19 @@ serve(async (req) => {
     await supabase.from('pedidos').update({ total: totalRealCalculado }).eq('id', pedido_id)
 
     // 4. Mandamos a Stripe
+    // 4. Mandamos a Stripe con Facturación Profesional Activada
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
+      // ✨ MAGIA 1: Crea una factura oficial en PDF automáticamente
+      invoice_creation: {
+        enabled: true, 
+      },
+      // ✨ MAGIA 2: Le pide el DNI/CIF al cliente por si es un taller o empresa
+      tax_id_collection: {
+        enabled: true,
+      },
       success_url: `${req.headers.get('origin')}/perfil.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/recambios.html`,
       metadata: { pedido_id },
