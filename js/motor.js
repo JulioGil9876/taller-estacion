@@ -2,10 +2,8 @@
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
-// Usamos tu clave publishable (¡Segura para la web!)
 const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
 
-// SESIÓN PERSISTENTE ACTIVADA (Nivel Pro)
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
     auth: { persistSession: true, autoRefreshToken: true }
 });
@@ -17,7 +15,6 @@ let busquedaActual = '';
 let cocheActual = ''; 
 let criterioOrden = 'nuevo';
 
-// MEMORIA DE USUARIO, FAVORITOS Y CARRITO
 let sessionActiva = false;
 let usuarioId = null;
 let favoritosNube = []; 
@@ -33,18 +30,13 @@ let descargandoPiezas = false;
 // 2. DESCARGA SEGURA (SISTEMA ANTI-AHOGO)
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
-    if (descargandoPiezas) {
-        console.log("✋ Freno: Ya estamos descargando, ignorando el doble arranque.");
-        return; 
-    }
+    if (descargandoPiezas) return; 
     
     descargandoPiezas = true; 
     cargandoInventario = true;
-    console.log("🏁 1. Iniciando carga de piezas...");
     renderizarVista(); 
     
     try {
-        console.log("📡 2. Pidiendo piezas a Supabase...");
         const { data, error } = await clienteSupabase.from('productos').select('*');
         
         if (error) { 
@@ -55,7 +47,6 @@ async function cargarPiezasDesdeLaNube() {
             return; 
         }
         
-        console.log("✅ 3. Piezas recibidas correctamente.");
         inventarioNube = data || [];
         cargandoInventario = false; 
         
@@ -75,7 +66,7 @@ async function cargarPiezasDesdeLaNube() {
             renderizarVista();
         }
     } catch (err) {  
-        console.error("💣 FALLO CRÍTICO EN EL CÓDIGO:", err);
+        console.error("💣 FALLO CRÍTICO:", err);
         cargandoInventario = false;
     } finally {
         descargandoPiezas = false; 
@@ -396,7 +387,7 @@ window.cambiarFoto = (el, url) => {
 window.cerrarModal = () => document.getElementById('modal-producto').style.display = 'none';
 
 // ==========================================
-// 7. CARRITO DE COMPRAS & STRIPE REAL 💳 (¡ACTUALIZADO!)
+// 7. CARRITO DE COMPRAS & STRIPE REAL 💳
 // ==========================================
 window.abrirPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '0'; document.getElementById('overlay-carrito').style.display = 'block'; }
 window.cerrarPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '-400px'; document.getElementById('overlay-carrito').style.display = 'none'; }
@@ -447,8 +438,6 @@ window.eliminarDelCarrito = (index) => {
     actualizarInterfazCarrito(); 
 }
 
-// 🚀 ESTRUCTURA DE PAGO REAL CON STRIPE Y SUPABASE FUNCTIONS
-// 🚀 ESTRUCTURA DE PAGO REAL CON STRIPE Y SUPABASE FUNCTIONS
 window.comprobarCheckout = async () => {
     if (carrito.length === 0) {
         mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
@@ -468,21 +457,19 @@ window.comprobarCheckout = async () => {
     btnCheckout.style.background = "#27ae60";
     btnCheckout.disabled = true;
 
-    // 1. Calculamos el total de la cesta
     let sumaTotal = 0;
     carrito.forEach(p => {
         let prec = p.precio ? parseFloat(p.precio.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
         sumaTotal += isNaN(prec) ? 0 : prec;
     });
 
-    // 2. Guardamos el pedido en Supabase (AHORA ENTRA COMO PENDIENTE)
     const { data: pedidoData, error: pedidoError } = await clienteSupabase
         .from('pedidos')
         .insert([{ 
             user_id: usuarioId, 
             total: sumaTotal, 
             articulos: carrito,
-            estado: 'Pendiente de pago ⏳' // <--- ¡AQUÍ ESTÁ LA MAGIA!
+            estado: 'Pendiente de pago ⏳'
         }])
         .select(); 
 
@@ -503,7 +490,6 @@ window.comprobarCheckout = async () => {
         precio: p.precio || '0'
     }));
 
-    // 3. Llamamos a la Caja Fuerte
     const { data: stripeData, error: stripeError } = await clienteSupabase.functions.invoke('crear-pago-stripe', {
         body: { pedido_id: miPedidoId, articulos: carritoParaStripe }
     });
@@ -515,7 +501,7 @@ window.comprobarCheckout = async () => {
         btnCheckout.style.background = "#e74c3c";
         btnCheckout.disabled = false;
     } else if (stripeData && stripeData.url) {
-       
+        // Viaje directo a Stripe sin vaciar la cesta
         window.location.href = stripeData.url; 
     } else {
         mostrarNotificacionFlotante("❌ El banco no respondió correctamente", "#e74c3c");
@@ -612,6 +598,7 @@ window.cerrarSesionSegura = async () => {
         window.location.href = 'index.html';
     }
 }
+
 window.abrirPestanaPerfil = (id) => {
     document.querySelectorAll('.contenido-perfil-tab').forEach(t => t.style.display = 'none');
     document.getElementById(id).style.display = 'block';
@@ -619,19 +606,17 @@ window.abrirPestanaPerfil = (id) => {
 }
 
 // ==========================================
-// 9. EVENTOS GENERALES (ARRANQUE EN LÍNEA RECTA)
+// 9. EVENTOS GENERALES Y CARGA INICIAL
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-
-    document.addEventListener('DOMContentLoaded', async () => {
     
-    // --- NUEVO: SI VENIMOS DEL BANCO CON ÉXITO, VACIAMOS LA CESTA ---
+    // Si volvemos de Stripe con éxito, vaciamos la cesta y avisamos
     if (window.location.href.includes('session_id=')) {
         carrito = [];
         localStorage.setItem('mi_carrito', JSON.stringify(carrito));
         setTimeout(() => mostrarNotificacionFlotante("🎉 ¡Pago completado con éxito!", "#27ae60"), 500);
     }
-    
+
     actualizarInterfazCarrito();
     console.log("🚀 ARRANCANDO MOTOR LINEAL...");
 
@@ -651,10 +636,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Fallo favoritos:", err);
         }
         console.log("🚗 Descargando mis coches...");
-        await cargarMisCoches();
+        await window.cargarMisCoches();
 
         console.log("📦 Descargando historial de pedidos...");
-        await cargarMisPedidos();
+        await window.cargarMisPedidos();
 
         const btnU = document.querySelectorAll('#btn-usuario-nav'); 
         btnU.forEach(btn => {
@@ -737,6 +722,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
 
+}); // FIN DE DOMContentLoaded
+
 // ==========================================
 // 10. GESTIÓN DEL PERFIL PROFESIONAL
 // ==========================================
@@ -775,14 +762,12 @@ window.guardarCoche = async function() {
     } else {
         mostrarNotificacionFlotante("🚗 Vehículo aparcado en tu garaje con éxito", "#27ae60");
         inputCoche.value = "";
-        cargarMisCoches(); 
+        window.cargarMisCoches(); 
     }
     
     btn.innerText = txtOriginal;
     btn.disabled = false;
 };
-
-});
 
 // ==========================================
 // 11. SISTEMA AVANZADO DE GARAJE
@@ -832,9 +817,6 @@ window.cargarMisCoches = async function() {
     }
 };
 
-// ==========================================
-// VENTANAS FLOTANTES (MODALES) PARA EL GARAJE
-// ==========================================
 function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
     let modal = document.getElementById('modal-garaje-custom');
     if (!modal) {
@@ -873,7 +855,7 @@ function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
         btn.onclick = async () => {
             cerrarModalGaraje();
             const { error } = await clienteSupabase.from('coches_clientes').delete().eq('id', idCoche);
-            if (!error) { mostrarNotificacionFlotante("🚗 Coche eliminado", "#e74c3c"); cargarMisCoches(); }
+            if (!error) { mostrarNotificacionFlotante("🚗 Coche eliminado", "#e74c3c"); window.cargarMisCoches(); }
         };
     } else if (tipo === 'editar') {
         titulo.innerHTML = "✏️ Editar Vehículo";
@@ -889,7 +871,7 @@ function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
             
             cerrarModalGaraje();
             const { error } = await clienteSupabase.from('coches_clientes').update({ marca: palabras[0].toUpperCase(), modelo: nuevoNombre }).eq('id', idCoche);
-            if (!error) { mostrarNotificacionFlotante("✅ Vehículo actualizado", "#27ae60"); cargarMisCoches(); }
+            if (!error) { mostrarNotificacionFlotante("✅ Vehículo actualizado", "#27ae60"); window.cargarMisCoches(); }
         };
     }
 }
