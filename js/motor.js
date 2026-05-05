@@ -14,7 +14,7 @@ let inventarioNube = [];
 let rutaActual = 'inicio';
 let filtroActual = 'todos';
 let busquedaActual = ''; 
-let cocheActual = ''; // NUEVO: MEMORIA DEL COCHE DEL GARAJE
+let cocheActual = ''; 
 let criterioOrden = 'nuevo';
 
 // MEMORIA DE USUARIO, FAVORITOS Y CARRITO
@@ -26,23 +26,19 @@ let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || [];
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
 
-// ESTO EVITA LA PANTALLA EN BLANCO: El semáforo de carga
 let cargandoInventario = true; 
-
-// Variable global para evitar el doble arranque (Ponla justo encima de la función)
 let descargandoPiezas = false;
 
 // ==========================================
 // 2. DESCARGA SEGURA (SISTEMA ANTI-AHOGO)
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
-    // Si ya estamos descargando, frenamos en seco esta segunda orden fantasma
     if (descargandoPiezas) {
         console.log("✋ Freno: Ya estamos descargando, ignorando el doble arranque.");
         return; 
     }
     
-    descargandoPiezas = true; // Echamos el cerrojo
+    descargandoPiezas = true; 
     cargandoInventario = true;
     console.log("🏁 1. Iniciando carga de piezas...");
     renderizarVista(); 
@@ -82,7 +78,6 @@ async function cargarPiezasDesdeLaNube() {
         console.error("💣 FALLO CRÍTICO EN EL CÓDIGO:", err);
         cargandoInventario = false;
     } finally {
-        // MUY IMPORTANTE: Pase lo que pase, al terminar quitamos el cerrojo
         descargandoPiezas = false; 
     }
 }
@@ -135,7 +130,6 @@ function actualizarEtiquetasFiltros() {
     if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
     if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
     
-    // NUEVO: LA ETIQUETA CHIP DEL COCHE DEL GARAJE
     if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;" title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
     
     contenedor.innerHTML = html;
@@ -164,7 +158,6 @@ window.quitarFiltro = (tipo) => {
         const btnTodas = document.querySelector('.btn-marca-filtro[onclick*="todas"]');
         if(btnTodas) { btnTodas.style.background = '#2c3e50'; btnTodas.style.color = 'white'; }
     }
-    // NUEVO: PARA BORRAR EL CHIP DEL COCHE
     if (tipo === 'coche') {
         cocheActual = ''; 
         const selectGaraje = document.getElementById('filtro-garaje');
@@ -174,7 +167,7 @@ window.quitarFiltro = (tipo) => {
 }
 
 // ==========================================
-// 4. EL RENDERIZADOR PRINCIPAL BLINDADO
+// 4. EL RENDERIZADOR PRINCIPAL
 // ==========================================
 function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
@@ -203,7 +196,6 @@ function renderizarVista() {
     const termino = busquedaActual.toLowerCase();
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
-    // 4. FILTRADO (AHORA CON EL COCHE DEL GARAJE INCORPORADO)
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
@@ -211,7 +203,6 @@ function renderizarVista() {
         let textoBusqueda = ((p.titulo||'') + (p.marca||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
         
-        // REGLA DEL COCHE DEL GARAJE:
         let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
 
         return r && f && b && c;
@@ -274,6 +265,7 @@ function renderizarVista() {
     actualizarEtiquetasFiltros();
     dibujarPaginacion(totalPaginas); 
 }
+
 // ==========================================
 // 5. MOTOR DE PAGINACIÓN, COMPARTIR Y FAVORITOS
 // ==========================================
@@ -404,7 +396,7 @@ window.cambiarFoto = (el, url) => {
 window.cerrarModal = () => document.getElementById('modal-producto').style.display = 'none';
 
 // ==========================================
-// 7. CARRITO DE COMPRAS & STRIPE 💳
+// 7. CARRITO DE COMPRAS & STRIPE REAL 💳 (¡ACTUALIZADO!)
 // ==========================================
 window.abrirPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '0'; document.getElementById('overlay-carrito').style.display = 'block'; }
 window.cerrarPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '-400px'; document.getElementById('overlay-carrito').style.display = 'none'; }
@@ -455,7 +447,7 @@ window.eliminarDelCarrito = (index) => {
     actualizarInterfazCarrito(); 
 }
 
-// 🚀 ESTRUCTURA DE PAGO Y CREACIÓN DE PEDIDOS
+// 🚀 ESTRUCTURA DE PAGO REAL CON STRIPE Y SUPABASE FUNCTIONS
 window.comprobarCheckout = async () => {
     if (carrito.length === 0) {
         mostrarNotificacionFlotante("⚠️ No puedes pagar con la cesta vacía", "#e74c3c");
@@ -466,12 +458,12 @@ window.comprobarCheckout = async () => {
         mostrarNotificacionFlotante("🔒 Inicia sesión para tramitar el pago", "#f39c12");
         window.cerrarPanelCarrito(); 
         window.abrirLogin();
-        return; // Frenamos aquí si no está logueado
+        return; 
     } 
     
     const btnCheckout = document.querySelector('#footer-carrito button');
     const txtOriginal = btnCheckout.innerHTML;
-    btnCheckout.innerHTML = "Procesando pedido... ⏳";
+    btnCheckout.innerHTML = "Conectando con el banco... 🔐";
     btnCheckout.style.background = "#27ae60";
     btnCheckout.disabled = true;
 
@@ -482,38 +474,55 @@ window.comprobarCheckout = async () => {
         sumaTotal += isNaN(prec) ? 0 : prec;
     });
 
-    // 2. Enviamos el pedido a Supabase
-    const { error } = await clienteSupabase.from('pedidos').insert([
-        { 
-            user_id: usuarioId, 
-            total: sumaTotal, 
-            articulos: carrito // ¡Aquí se guarda toda la lista de piezas de golpe!
-        }
-    ]);
+    // 2. Guardamos el pedido en Supabase para tener el "Ticket" ANTES de pagar
+    const { data: pedidoData, error: pedidoError } = await clienteSupabase
+        .from('pedidos')
+        .insert([{ user_id: usuarioId, total: sumaTotal, articulos: carrito }])
+        .select(); // IMPORTANTE: Así nos devuelve el ID que acaba de crear
 
-    if (error) {
-        console.error("Error al crear pedido:", error);
-        mostrarNotificacionFlotante("❌ Hubo un error de conexión con el banco", "#e74c3c");
+    if (pedidoError || !pedidoData || pedidoData.length === 0) {
+        console.error("Error al crear pedido:", pedidoError);
+        mostrarNotificacionFlotante("❌ Hubo un error de conexión", "#e74c3c");
         btnCheckout.innerHTML = txtOriginal;
         btnCheckout.style.background = "#e74c3c";
         btnCheckout.disabled = false;
+        return;
+    }
+
+    // Sacamos el ID real de tu base de datos
+    const miPedidoId = pedidoData[0].id;
+
+    // Adaptamos los nombres de los productos para que la función de Stripe no se líe
+    const carritoParaStripe = carrito.map(p => ({
+        nombre: p.titulo || 'Pieza de taller',
+        imagen: p.foto_url || 'https://via.placeholder.com/300',
+        precio: p.precio || '0'
+    }));
+
+    // 3. Llamamos a la "Caja Fuerte" (La función que subiste a Supabase ayer)
+    const { data: stripeData, error: stripeError } = await clienteSupabase.functions.invoke('crear-pago-stripe', {
+        body: { pedido_id: miPedidoId, articulos: carritoParaStripe }
+    });
+
+    if (stripeError) {
+        console.error("Error al llamar a Stripe:", stripeError);
+        mostrarNotificacionFlotante("❌ Error conectando con la pasarela de pago", "#e74c3c");
+        btnCheckout.innerHTML = txtOriginal;
+        btnCheckout.style.background = "#e74c3c";
+        btnCheckout.disabled = false;
+    } else if (stripeData && stripeData.url) {
+        // 4. ¡Éxito! Vaciamos la cesta temporal...
+        carrito = [];
+        localStorage.setItem('mi_carrito', JSON.stringify(carrito));
+        actualizarInterfazCarrito();
+        
+        // ...y ¡Viaje directo a la pasarela azul de Stripe!
+        window.location.href = stripeData.url; 
     } else {
-        // 3. ¡Éxito! Vaciamos el carrito y cerramos
-        mostrarNotificacionFlotante("✅ ¡Pedido guardado con éxito!", "#27ae60");
-        
-        carrito = []; // Vaciamos la memoria
-        localStorage.setItem('mi_carrito', JSON.stringify(carrito)); // Guardamos el carrito vacío
-        actualizarInterfazCarrito(); // Actualizamos los números rojos
-        
-        setTimeout(() => {
-            window.cerrarPanelCarrito();
-            btnCheckout.innerHTML = txtOriginal;
-            btnCheckout.style.background = "#e74c3c";
-            btnCheckout.disabled = false;
-            
-            // Este aviso temporal lo quitaremos cuando pongamos el pago de verdad
-            alert("🎉 ¡ENHORABUENA! El pedido acaba de entrar a la base de datos.\n\nEn el siguiente paso conectaremos la pasarela de Stripe aquí mismo para cobrar de verdad.");
-        }, 1500);
+        mostrarNotificacionFlotante("❌ El banco no respondió correctamente", "#e74c3c");
+        btnCheckout.innerHTML = txtOriginal;
+        btnCheckout.style.background = "#e74c3c";
+        btnCheckout.disabled = false;
     }
 };
 
@@ -899,9 +908,6 @@ window.buscarPiezasRapido = function(modelo) {
     }
 };
 
-// ==========================================
-// FUNCIÓN PARA FILTRAR POR COCHE DEL GARAJE
-// ==========================================
 window.filtrarPorMiCoche = function() {
     const select = document.getElementById('filtro-garaje');
     if(!select) return;
@@ -918,7 +924,6 @@ window.cargarMisPedidos = async function() {
     const contenedor = document.getElementById('lista-mis-pedidos');
     if (!contenedor || !sessionActiva || !usuarioId) return;
 
-    // Pedimos a Supabase los pedidos, ordenados del más nuevo al más antiguo
     const { data: pedidos, error } = await clienteSupabase
         .from('pedidos')
         .select('*')
@@ -944,16 +949,13 @@ window.cargarMisPedidos = async function() {
 
     let html = '';
     
-    // Recorremos cada pedido y fabricamos el "Ticket"
     pedidos.forEach(pedido => {
-        // Formatear la fecha para que sea legible (ej: "4 de mayo de 2026")
         const fechaObj = new Date(pedido.fecha);
         const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
         const fechaBonita = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
 
-        // Generar la lista de piezas compradas en este pedido
         let articulosHtml = '';
-        const listaArticulos = pedido.articulos || []; // La caja fuerte donde guardamos la cesta
+        const listaArticulos = pedido.articulos || []; 
         
         listaArticulos.forEach(art => {
             articulosHtml += `
@@ -970,7 +972,6 @@ window.cargarMisPedidos = async function() {
             `;
         });
 
-        // Montar la tarjeta completa
         html += `
             <div class="tarjeta-pedido">
                 <div class="cabecera-pedido">
