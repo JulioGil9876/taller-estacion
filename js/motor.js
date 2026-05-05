@@ -396,7 +396,15 @@ window.añadirAlCarrito = (ref, e) => {
     if(e) e.stopPropagation();
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
-    carrito.push(p);
+    
+    // BÚSQUEDA DE DUPLICADOS (La magia del x2, x3...)
+    let itemExistente = carrito.find(item => item.referencia === ref);
+    if (itemExistente) {
+        itemExistente.cantidad = (itemExistente.cantidad || 1) + 1;
+    } else {
+        carrito.push({ ...p, cantidad: 1 });
+    }
+    
     localStorage.setItem('mi_carrito', JSON.stringify(carrito));
     actualizarInterfazCarrito();
     const cont = document.getElementById('contenedor-carrito-nav');
@@ -409,6 +417,9 @@ function actualizarInterfazCarrito() {
     const contadores = document.querySelectorAll('#contador-carrito');
     const totalTxt = document.getElementById('total-precio-carrito');
 
+    // Sumamos la cantidad de piezas totales
+    let totalArticulos = carrito.reduce((sum, item) => sum + (item.cantidad || 1), 0);
+
     if (carrito.length === 0) {
         if(lista) lista.innerHTML = '<div style="text-align:center; padding:40px;"><span style="font-size:3em;">🛒</span><p style="color:#aaa; margin-top:10px;">Tu cesta está vacía...</p></div>';
         contadores.forEach(c => c.style.display = 'none');
@@ -416,16 +427,21 @@ function actualizarInterfazCarrito() {
         return;
     }
 
-    contadores.forEach(c => { c.innerText = carrito.length; c.style.display = 'block'; });
+    contadores.forEach(c => { c.innerText = totalArticulos; c.style.display = 'block'; });
 
     let html = ''; let sumaTotal = 0;
     carrito.forEach((p, index) => {
+        let cantidad = p.cantidad || 1;
         let prec = p.precio ? parseFloat(p.precio.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
-        sumaTotal += isNaN(prec) ? 0 : prec;
+        sumaTotal += isNaN(prec) ? 0 : (prec * cantidad);
+
         html += `<div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <img src="${p.foto_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; object-fit:contain; background:#f9f9f9; border-radius:5px;">
-                <div style="flex-grow:1;"><h4 style="font-size:0.9em; margin:0; color:#2c3e50;">${p.titulo}</h4><span style="color:#e74c3c; font-weight:bold;">${p.precio || '0€'}</span></div>
-                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#e74c3c; font-weight:bold; font-size:1.5em; background:#fdf2f2; padding:0 10px; border-radius:8px;">&times;</span>
+                <div style="flex-grow:1;">
+                    <h4 style="font-size:0.9em; margin:0; color:#2c3e50;">${p.titulo} <span style="background:#e74c3c; color:white; padding:2px 6px; border-radius:10px; font-size:0.8em; margin-left:5px;">x${cantidad}</span></h4>
+                    <span style="color:#e74c3c; font-weight:bold;">${p.precio || '0€'}</span>
+                </div>
+                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#e74c3c; font-weight:bold; font-size:1.5em; background:#fdf2f2; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:8px;" title="Quitar uno">-</span>
             </div>`;
     });
     if(lista) lista.innerHTML = html;
@@ -433,7 +449,12 @@ function actualizarInterfazCarrito() {
 }
 
 window.eliminarDelCarrito = (index) => { 
-    carrito.splice(index, 1); 
+    // Si hay más de 1, restamos. Si solo queda 1, borramos la fila.
+    if (carrito[index].cantidad > 1) {
+        carrito[index].cantidad--;
+    } else {
+        carrito.splice(index, 1); 
+    }
     localStorage.setItem('mi_carrito', JSON.stringify(carrito)); 
     actualizarInterfazCarrito(); 
 }
@@ -459,8 +480,9 @@ window.comprobarCheckout = async () => {
 
     let sumaTotal = 0;
     carrito.forEach(p => {
+        let cantidad = p.cantidad || 1;
         let prec = p.precio ? parseFloat(p.precio.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
-        sumaTotal += isNaN(prec) ? 0 : prec;
+        sumaTotal += isNaN(prec) ? 0 : (prec * cantidad);
     });
 
     const { data: pedidoData, error: pedidoError } = await clienteSupabase
@@ -487,7 +509,8 @@ window.comprobarCheckout = async () => {
     const carritoParaStripe = carrito.map(p => ({
         nombre: p.titulo || 'Pieza de taller',
         imagen: p.foto_url || 'https://via.placeholder.com/300',
-        precio: p.precio || '0'
+        precio: p.precio || '0',
+        cantidad: p.cantidad || 1 // <-- LE PASAMOS LA CANTIDAD AL BANCO
     }));
 
     const { data: stripeData, error: stripeError } = await clienteSupabase.functions.invoke('crear-pago-stripe', {
@@ -501,7 +524,6 @@ window.comprobarCheckout = async () => {
         btnCheckout.style.background = "#e74c3c";
         btnCheckout.disabled = false;
     } else if (stripeData && stripeData.url) {
-        // Viaje directo a Stripe sin vaciar la cesta
         window.location.href = stripeData.url; 
     } else {
         mostrarNotificacionFlotante("❌ El banco no respondió correctamente", "#e74c3c");
