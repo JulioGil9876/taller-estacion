@@ -169,18 +169,12 @@ function renderizarVista() {
             <div style="grid-column: 1 / -1; text-align:center; padding:80px 20px; background:white; border-radius:15px; border:1px solid #eee; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
                 <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #e74c3c; border-radius:50%; animation: girar 1s linear infinite; margin:0 auto 20px;"></div>
                 <h3 style="color:#2d3436; margin:0; font-size:1.4em;">Sincronizando almacén...</h3>
-                <p style="color:#636e72; margin-top:10px;">Preparando el inventario para tu sesión segura.</p>
-                <style>@keyframes girar { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
             </div>`;
         return; 
     }
 
     if (sessionActiva && rutaActual === 'perfil') {
-        if (typeof dibujarPanelPerfil === 'function') {
-            dibujarPanelPerfil(contenedor);
-        } else {
-            contenedor.innerHTML = '<div style="grid-column:1/-1; padding:100px; text-align:center;"><h3>Panel de Usuario en mantenimiento</h3></div>';
-        }
+        if (typeof dibujarPanelPerfil === 'function') dibujarPanelPerfil(contenedor);
         return; 
     }
 
@@ -193,9 +187,7 @@ function renderizarVista() {
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
         let textoBusqueda = ((p.titulo||'') + (p.marca||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
-        
         let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
-
         return r && f && b && c;
     });
 
@@ -217,44 +209,46 @@ function renderizarVista() {
             ? `<div style="display:flex; flex-direction:column;"><span style="text-decoration:line-through;color:#a4b0be;font-size:0.85em;">${p.precio_antiguo}</span><span style="color:#e74c3c;font-weight:900;font-size:1.6em;line-height:1;">${p.precio || '0€'} <span style="background:#ff7675;color:white;padding:2px 5px;border-radius:4px;font-size:0.4em;vertical-align:middle;">OFERTA</span></span></div>` 
             : `<span style="font-weight:900;font-size:1.6em;color:#2d3436;">${p.precio || 'Consultar'}</span>`;
             
-        let linkWhatsapp = `https://wa.me/34600000000?text=${encodeURIComponent('¡Hola! He visto en la web esta pieza detallada:\n\n- *Pieza:* ' + (p.titulo||'') + '\n- *Ref:* ' + (p.referencia||'') + '\n\n ¿la tenéis en stock?.')}`;
-
         let esFavorito = misFavoritos.includes(p.referencia);
-        let claseActiva = esFavorito ? 'fav-activo' : '';
+        
+        let agotado = p.stock !== undefined && p.stock <= 0;
+        let cartelAgotado = agotado ? '<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-10deg);background:rgba(231,76,60,0.95);color:white;padding:8px 20px;font-size:1.4em;font-weight:900;border:3px solid white;border-radius:8px;z-index:20;box-shadow:0 5px 15px rgba(0,0,0,0.3);letter-spacing:1px;white-space:nowrap;">AGOTADO</div>' : '';
+        let btnAñadir = agotado ? `<button disabled style="flex:2; padding:10px; background:#bdc3c7; color:white; border:none; border-radius:6px; cursor:not-allowed; font-weight:bold;">❌ Sin Stock</button>` : `<button onclick="añadirAlCarrito('${p.referencia}', event)" class="btn-rojo" style="flex:2; padding:10px;">🛒 Añadir</button>`;
+        let estiloTarjeta = agotado ? 'opacity:0.75; filter:grayscale(80%);' : '';
 
         html += `
-            <div class="tarjeta-recambio" style="position:relative; background:#fff; border-radius:12px; border:1px solid #eee; overflow:hidden; display:flex; flex-direction:column; transition:0.3s; ${p.destacado ? 'border:2px solid #e1b12c; box-shadow:0 8px 20px rgba(225,177,44,0.15); transform:translateY(-3px);' : 'box-shadow:0 4px 10px rgba(0,0,0,0.03);'}">
-                ${p.destacado ? '<div style="position:absolute;top:12px;right:12px;background:#e1b12c;color:white;padding:5px 10px;border-radius:6px;font-size:0.7em;font-weight:800;z-index:10;box-shadow:0 3px 6px rgba(0,0,0,0.15);">⭐ RECOMENDADO</div>' : ''}
+            <div class="tarjeta-recambio" style="position:relative; background:#fff; border-radius:12px; border:1px solid #eee; overflow:hidden; display:flex; flex-direction:column; transition:0.3s; ${estiloTarjeta} ${p.destacado && !agotado ? 'border:2px solid #e1b12c; box-shadow:0 8px 20px rgba(225,177,44,0.15); transform:translateY(-3px);' : 'box-shadow:0 4px 10px rgba(0,0,0,0.03);'}">
+                ${cartelAgotado}
+                ${p.destacado && !agotado ? '<div style="position:absolute;top:12px;right:12px;background:#e1b12c;color:white;padding:5px 10px;border-radius:6px;font-size:0.7em;font-weight:800;z-index:10;">⭐ RECOMENDADO</div>' : ''}
                 <div onclick="abrirModal('${p.referencia}')" style="cursor:pointer; height:210px; background:#f8f9fa; display:flex; align-items:center; justify-content:center; padding:20px; border-bottom:1px solid #f1f2f6;">
                     <img src="${p.foto_url || 'https://via.placeholder.com/300'}" style="max-width:100%; max-height:100%; object-fit:contain; mix-blend-mode:multiply; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
                 <div style="padding:20px; flex-grow:1; display:flex; flex-direction:column;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <span style="background:${p.estado === 'Nuevo' ? '#e3fcf7' : '#f1f2f6'}; color:${p.estado === 'Nuevo' ? '#00b894' : '#576574'}; padding:4px 8px; border-radius:4px; font-size:0.75em; font-weight:bold;">${p.estado === 'Nuevo' ? 'NUEVO' : 'REVISADO'}</span>
+                        
+                        <!-- AQUÍ ESTÁ EL CÓDIGO RECUPERADO PARA CORTAR LAS REFERENCIAS LARGAS -->
                         <span title="Ref: ${p.referencia}" style="font-size:0.9em; color:#576574; background:#f1f2f6; padding:3px 6px; border-radius:4px; font-family:monospace; font-weight:bold; max-width:130px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:bottom;">Ref: ${p.referencia}</span>
                     </div>
+                    
                     <h3 onclick="abrirModal('${p.referencia}')" style="cursor:pointer; margin:0 0 8px 0; font-size:1.15em; color:#2d3436; line-height:1.3;">${p.titulo || 'Pieza sin título'}</h3>
                     <p style="margin:0 0 15px 0; font-size:0.85em; color:#636e72;">Marca: <strong style="color:#2d3436;">${p.marca || 'Otras'}</strong></p>
+                    
+                    <!-- AQUÍ ESTÁ EL CÓDIGO RECUPERADO DEL COCHE COMPATIBLE -->
                     ${p.compatible_con ? `<p style="font-size:0.8em; color:#636e72; margin-top:-5px; margin-bottom:15px; background:#f1f2f6; padding:8px; border-radius:6px;">🚗 Válido para: <b style="color:#2d3436;">${p.compatible_con}</b></p>` : ''}
+                    
                     <div style="margin-top:auto; padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
                         ${precioHtml}
-                        <div class="acciones-tarjeta" style="display:flex; gap:8px;">
-                            <button id="btn-fav-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${claseActiva}" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="Guardar favorito">${esFavorito ? '❤️' : '🤍'}</button>
-                            <button onclick="compartirPieza('${p.referencia}', event)" class="btn-icono-accion" style="background:#f1f2f6; border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="Copiar enlace">🔗</button>
-                        </div>
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:15px;">
-                        <button onclick="añadirAlCarrito('${p.referencia}', event)" class="btn-rojo" style="flex:2; padding:10px;">🛒 Añadir</button>
-                        <a href="${linkWhatsapp}" target="_blank" class="btn-rojo" style="flex:1; background:#f1f2f6; color:#2c3e50 !important; box-shadow:none; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; text-decoration:none;" title="Preguntar por WhatsApp">💬</a>
+                    <div style="display:flex; gap:10px; margin-top:15px; position:relative; z-index:25;">
+                        ${btnAñadir}
                     </div>
                 </div>
             </div>`;
     });
     
     contenedor.innerHTML = html || '<div style="width:100%; text-align:center; padding:60px;"><span style="font-size:3em;">🕵️‍♂️</span><h3 style="color:#636e72; margin-top:10px;">No encontramos piezas con esos filtros</h3></div>';
-
-    actualizarEtiquetasFiltros();
-    dibujarPaginacion(totalPaginas); 
+    actualizarEtiquetasFiltros(); dibujarPaginacion(totalPaginas); 
 }
 
 // ==========================================
@@ -343,14 +337,21 @@ window.abrirModal = (ref) => {
     let esFav = sessionActiva && favoritosNube.includes(p.referencia);
     let linkWhatsapp = `https://wa.me/34600000000?text=${encodeURIComponent('¡Hola! He visto en la web esta pieza detallada:\n\n- Pieza: ' + (p.titulo||'') + '\n- Referencia: ' + (p.referencia||'') + '\n\nMe gustaría saber si es compatible con mi coche.')}`;
 
+    // MAGIA DEL STOCK AQUÍ TAMBIÉN:
+    let agotado = p.stock !== undefined && p.stock <= 0;
+    let btnAñadir = agotado 
+        ? `<button disabled style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em; background:#bdc3c7; color:white; border:none; cursor:not-allowed; font-weight:bold;">❌ Agotado temporalmente</button>` 
+        : `<button onclick="añadirAlCarrito('${p.referencia}', event); cerrarModal()" class="btn-rojo" style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em;">🛒 Añadir al Carrito</button>`;
+    let avisoStock = agotado ? `<span style="background:#e74c3c; color:white; padding:4px 10px; border-radius:4px; font-size:0.8em; font-weight:bold; margin-left:10px; vertical-align:middle;">SIN STOCK</span>` : '';
+
     document.getElementById('modal-contenido-dinamico').innerHTML = `
         <div style="display:flex; flex-wrap:wrap;">
             <div style="flex:1 1 450px; background:#f8f9fa; padding:40px; display:flex; flex-direction:column; align-items:center; border-right:1px solid #eee;">
-                <img id="foto-main" src="${fotos[0]}" style="width:100%; height:350px; object-fit:contain; mix-blend-mode:multiply; transition:opacity 0.2s; margin-bottom:25px;">
+                <img id="foto-main" src="${fotos[0]}" style="width:100%; height:350px; object-fit:contain; mix-blend-mode:multiply; transition:opacity 0.2s; margin-bottom:25px; ${agotado ? 'filter:grayscale(80%);' : ''}">
                 ${miniaturasHtml}
             </div>
             <div style="flex:1 1 350px; padding:50px; display:flex; flex-direction:column;">
-                <span style="color:#a4b0be; font-weight:bold; font-size:0.9em; font-family:monospace;">REF: ${p.referencia}</span>
+                <span style="color:#a4b0be; font-weight:bold; font-size:0.9em; font-family:monospace;">REF: ${p.referencia} ${avisoStock}</span>
                 <h2 style="margin:10px 0 20px 0; color:#2d3436; font-size:1.8em; line-height:1.2;">${p.titulo || 'Pieza sin título'}</h2>
                 <div style="margin-bottom:25px; font-size:1.05em; color:#2d3436;">
                     <p style="margin:8px 0;"><strong>Marca:</strong> ${p.marca || 'Otras'}</p>
@@ -362,14 +363,13 @@ window.abrirModal = (ref) => {
                     <p style="font-size:0.95em; color:#636e72; line-height:1.6; margin:0;">${p.descripcion_larga || 'Contacta para detalles técnicos específicos.'}</p>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:10px; gap:20px; border-top:1px solid #eee; padding-top:25px;">
-                    <div><span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br><span style="font-size:2.8em; font-weight:900; color:#e74c3c; line-height:1;">${p.precio || 'Consultar'}</span></div>
+                    <div><span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br><span style="font-size:2.8em; font-weight:900; color:${agotado ? '#bdc3c7' : '#e74c3c'}; line-height:1;">${p.precio || 'Consultar'}</span></div>
                     <div style="display:flex; gap:10px;">
                         <button id="btn-fav-modal-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${esFav ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em;">${esFav ? '❤️' : '🤍'}</button>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:20px; width:100%;">
-                    <button onclick="añadirAlCarrito('${p.referencia}', event); cerrarModal()" class="btn-rojo" style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em;">🛒 Añadir al Carrito</button>
-                    <a href="${linkWhatsapp}" target="_blank" style="flex:1; background:#f1f2f6; color:#2c3e50; text-align:center; padding:18px; border-radius:8px; text-decoration:none; font-weight:bold; border:1px solid #ddd; display:flex; align-items:center; justify-content:center;">💬 Chat</a>
+                    ${btnAñadir}
                 </div>
             </div>
         </div>`;
@@ -396,11 +396,23 @@ window.añadirAlCarrito = (ref, e) => {
     if(e) e.stopPropagation();
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
-    
-    // BÚSQUEDA DE DUPLICADOS (La magia del x2, x3...)
+
+    // 1. Comprobamos si está agotado
+    if (p.stock !== undefined && p.stock <= 0) {
+        return mostrarNotificacionFlotante("⚠️ Esta pieza está agotada", "#e74c3c");
+    }
+
+    // 2. Comprobamos si el cliente intenta meter más de las que hay en la estantería
     let itemExistente = carrito.find(item => item.referencia === ref);
+    let cantActual = itemExistente ? (itemExistente.cantidad || 1) : 0;
+
+    if (p.stock !== undefined && (cantActual + 1) > p.stock) {
+        return mostrarNotificacionFlotante(`⚠️ Lo sentimos, solo nos quedan ${p.stock} en stock`, "#f39c12");
+    }
+
+    // 3. Añadimos a la cesta
     if (itemExistente) {
-        itemExistente.cantidad = (itemExistente.cantidad || 1) + 1;
+        itemExistente.cantidad = cantActual + 1;
     } else {
         carrito.push({ ...p, cantidad: 1 });
     }
