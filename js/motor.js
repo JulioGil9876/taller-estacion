@@ -506,11 +506,10 @@ window.comprobarCheckout = async () => {
 
     const miPedidoId = pedidoData[0].id;
 
+    // AHORA SOLO LE MANDAMOS AL BANCO LA MATRÍCULA Y LA CANTIDAD. EL SERVIDOR HACE EL RESTO.
     const carritoParaStripe = carrito.map(p => ({
-        nombre: p.titulo || 'Pieza de taller',
-        imagen: p.foto_url || 'https://via.placeholder.com/300',
-        precio: p.precio || '0',
-        cantidad: p.cantidad || 1 // <-- LE PASAMOS LA CANTIDAD AL BANCO
+        referencia: p.referencia, 
+        cantidad: p.cantidad || 1 
     }));
 
     const { data: stripeData, error: stripeError } = await clienteSupabase.functions.invoke('crear-pago-stripe', {
