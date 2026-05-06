@@ -29,23 +29,25 @@ serve(async (req) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
-      const pedidoId = session.metadata.pedido_id //
+      const pedidoId = session.metadata.pedido_id
 
-      // 🏠 Montamos la dirección para tu columna 'direccion_envio'
-      const nombre = session.customer_details?.name || 'Cliente'
-      const dir = session.customer_details?.address
+      // 🏠 CAMBIO CRÍTICO: Miramos en 'shipping_details' en lugar de 'customer_details'
+      // Esto es porque en tu otro archivo pides la dirección de envío específicamente
+      const nombre = session.shipping_details?.name || session.customer_details?.name || 'Cliente'
+      const dir = session.shipping_details?.address || session.customer_details?.address
+      
       const textoDireccion = `${nombre}. ${dir?.line1 || ''}, ${dir?.postal_code || ''} ${dir?.city || ''}, ${dir?.country || ''}`.trim()
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
       const supabase = createClient(supabaseUrl, supabaseKey)
 
-      // 1. Actualizamos el pedido con la dirección[cite: 1]
+      // 1. Aquí es donde la dirección "vuela" a tu tabla de Supabase
       await supabase
         .from('pedidos')
         .update({ 
           estado: 'Pagado - Preparando envío ✅',
-          direccion_envio: textoDireccion 
+          direccion_envio: textoDireccion // <--- ¡AQUÍ SE GUARDA!
         })
         .eq('id', pedidoId)
 
