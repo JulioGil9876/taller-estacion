@@ -15,11 +15,12 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     })
     
-    const webhookSecret = 'whsec_o4yS01MmlDafUZueeJL4YDWWf9xTC6DP'
+    // Ocultamos la clave de nuevo por seguridad
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || ''
 
     let event;
     try {
-      // ✨ EL CAMBIO MÁGICO: Añadimos 'await' y 'Async' al final
+      // Verificación asíncrona para evitar el fallo de "SubtleCrypto"
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
     } catch (err) {
       return new Response(`Error de Firma: ${err.message}`, { status: 400 })
@@ -27,18 +28,31 @@ serve(async (req) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
-      const pedidoId = session.metadata.pedido_id
+      const pedidoId = session.metadata.pedido_id // Sacamos el ID que guardamos al crear el pago
+
+      // Extraemos la dirección del cliente que ha puesto en Stripe[cite: 1]
+      const dir = session.customer_details?.address
+      const nombre = session.customer_details?.name || ''
+      const textoDireccion = `${nombre}. ${dir?.line1 || ''} ${dir?.line2 || ''}, ${dir?.postal_code || ''} ${dir?.city || ''}, ${dir?.country || ''}`.trim()
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
       const supabase = createClient(supabaseUrl, supabaseKey)
 
-      await supabase
+      // 1. Actualizamos el estado y la dirección de envío en tu tabla
+      const { error: updateError } = await supabase
         .from('pedidos')
-        .update({ estado: 'Pagado - Preparando envío ✅' })
+        .update({ 
+          estado: 'Pagado - Preparando envío ✅',
+          direccion_envio: textoDireccion 
+        })
         .eq('id', pedidoId)
 
+      if (updateError) throw new Error(`Error en DB: ${updateError.message}`)
+
+      // 2. Restamos el Stock de los artículos comprados
       const { data: pedidoData } = await supabase.from('pedidos').select('articulos').eq('id', pedidoId).single()
+      
       if (pedidoData?.articulos) {
         for (const item of pedidoData.articulos) {
            const { data: prod } = await supabase.from('productos').select('stock').eq('referencia', item.referencia).single()
