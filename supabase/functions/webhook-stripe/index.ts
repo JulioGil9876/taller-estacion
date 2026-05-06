@@ -10,17 +10,18 @@ serve(async (req) => {
     }
 
     const body = await req.text()
+    
+    // 🔑 Usamos las llaves guardadas en Supabase
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2022-11-15',
       httpClient: Stripe.createFetchHttpClient(),
     })
     
-    // Ocultamos la clave de nuevo por seguridad
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || ''
 
     let event;
     try {
-      // Verificación asíncrona para evitar el fallo de "SubtleCrypto"
+      // ✅ La clave para que no falle en Deno es usar constructEventAsync
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
     } catch (err) {
       return new Response(`Error de Firma: ${err.message}`, { status: 400 })
@@ -28,19 +29,19 @@ serve(async (req) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
-      const pedidoId = session.metadata.pedido_id // Sacamos el ID que guardamos al crear el pago
+      const pedidoId = session.metadata.pedido_id //
 
-      // Extraemos la dirección del cliente que ha puesto en Stripe[cite: 1]
+      // 🏠 Montamos la dirección para tu columna 'direccion_envio'
+      const nombre = session.customer_details?.name || 'Cliente'
       const dir = session.customer_details?.address
-      const nombre = session.customer_details?.name || ''
-      const textoDireccion = `${nombre}. ${dir?.line1 || ''} ${dir?.line2 || ''}, ${dir?.postal_code || ''} ${dir?.city || ''}, ${dir?.country || ''}`.trim()
+      const textoDireccion = `${nombre}. ${dir?.line1 || ''}, ${dir?.postal_code || ''} ${dir?.city || ''}, ${dir?.country || ''}`.trim()
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
       const supabase = createClient(supabaseUrl, supabaseKey)
 
-      // 1. Actualizamos el estado y la dirección de envío en tu tabla
-      const { error: updateError } = await supabase
+      // 1. Actualizamos el pedido con la dirección[cite: 1]
+      await supabase
         .from('pedidos')
         .update({ 
           estado: 'Pagado - Preparando envío ✅',
@@ -48,17 +49,33 @@ serve(async (req) => {
         })
         .eq('id', pedidoId)
 
-      if (updateError) throw new Error(`Error en DB: ${updateError.message}`)
+      // 2. 📉 RESTAR STOCK (Aquí respondemos a tu duda)
+      // Buscamos los artículos que hay dentro del pedido[cite: 1]
+      const { data: pedidoData } = await supabase
+        .from('pedidos')
+        .select('articulos')
+        .eq('id', pedidoId)
+        .single()
 
-      // 2. Restamos el Stock de los artículos comprados
-      const { data: pedidoData } = await supabase.from('pedidos').select('articulos').eq('id', pedidoId).single()
-      
       if (pedidoData?.articulos) {
+        // Recorremos cada pieza comprada
         for (const item of pedidoData.articulos) {
-           const { data: prod } = await supabase.from('productos').select('stock').eq('referencia', item.referencia).single()
+           // Buscamos el stock actual de esa referencia
+           const { data: prod } = await supabase
+             .from('productos')
+             .select('stock')
+             .eq('referencia', item.referencia)
+             .single()
+
            if (prod) {
-             const nuevoStock = Math.max(0, prod.stock - (item.cantidad || 1))
-             await supabase.from('productos').update({ stock: nuevoStock }).eq('referencia', item.referencia)
+             // Restamos la cantidad comprada (si no hay cantidad, restamos 1)
+             const cantidadARestar = item.cantidad || 1
+             const nuevoStock = Math.max(0, prod.stock - cantidadARestar)
+             
+             await supabase
+               .from('productos')
+               .update({ stock: nuevoStock })
+               .eq('referencia', item.referencia)
            }
         }
       }
@@ -67,6 +84,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ received: true }), { status: 200 })
     
   } catch (err) {
+    // Si algo falla dentro, esto nos dirá qué ha sido
     return new Response(`Error General: ${err.message}`, { status: 400 })
   }
 })

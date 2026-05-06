@@ -65,6 +65,10 @@ serve(async (req) => {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
+      billing_address_collection: 'required', 
+      shipping_address_collection: {
+        allowed_countries: ['ES'],
+        },
       // ✨ MAGIA 1: Crea una factura oficial en PDF automáticamente
       invoice_creation: {
         enabled: true, 
