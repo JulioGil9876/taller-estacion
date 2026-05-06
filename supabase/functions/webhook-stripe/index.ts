@@ -4,32 +4,27 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 serve(async (req) => {
   try {
-    // 1. Le pedimos el "DNI" (La firma) al mensaje que llega
     const signature = req.headers.get('stripe-signature')
     if (!signature) {
-      throw new Error('¡Alto ahí! Falta la firma de Stripe.')
+      return new Response(`Error: No llega la firma`, { status: 400 })
     }
 
     const body = await req.text()
-    
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2022-11-15',
       httpClient: Stripe.createFetchHttpClient(),
     })
     
-    // Sacamos la contraseña secreta que guardamos antes
-    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || ''
+    const webhookSecret = 'whsec_o4yS01MmlDafUZueeJL4YDWWf9xTC6DP'
 
-    // 2. EL PORTERO ACTÚA: Comprueba si la firma coincide con la contraseña
     let event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+      // ✨ EL CAMBIO MÁGICO: Añadimos 'await' y 'Async' al final
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
     } catch (err) {
-      console.error(`⚠️ ALERTA DE HACKEO: Firma inválida.`, err.message)
-      return new Response(`Error: Mensaje falso detectado`, { status: 400 })
+      return new Response(`Error de Firma: ${err.message}`, { status: 400 })
     }
 
-    // 3. Si el portero le deja pasar, procesamos el pago y restamos el stock
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
       const pedidoId = session.metadata.pedido_id
@@ -38,22 +33,17 @@ serve(async (req) => {
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
       const supabase = createClient(supabaseUrl, supabaseKey)
 
-      // A) Ponemos el pedido como PAGADO
       await supabase
         .from('pedidos')
         .update({ estado: 'Pagado - Preparando envío ✅' })
         .eq('id', pedidoId)
 
-      // B) RESTAMOS EL STOCK DEL ALMACÉN
       const { data: pedidoData } = await supabase.from('pedidos').select('articulos').eq('id', pedidoId).single()
-      
-      if (pedidoData && pedidoData.articulos) {
+      if (pedidoData?.articulos) {
         for (const item of pedidoData.articulos) {
-           // Miramos cuánto stock queda de esta pieza
            const { data: prod } = await supabase.from('productos').select('stock').eq('referencia', item.referencia).single()
-           
            if (prod) {
-             const nuevoStock = Math.max(0, prod.stock - (item.cantidad || 1)) // Restamos (sin bajar de 0)
+             const nuevoStock = Math.max(0, prod.stock - (item.cantidad || 1))
              await supabase.from('productos').update({ stock: nuevoStock }).eq('referencia', item.referencia)
            }
         }
@@ -63,6 +53,6 @@ serve(async (req) => {
     return new Response(JSON.stringify({ received: true }), { status: 200 })
     
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400 })
+    return new Response(`Error General: ${err.message}`, { status: 400 })
   }
 })
