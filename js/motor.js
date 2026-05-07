@@ -1038,13 +1038,29 @@ window.cargarMisPedidos = async function() {
             `;
         }
 
-        // 3. Juntamos toda la tarjeta
+        // 3. Juntamos toda la tarjeta y le añadimos los botones inteligentes
+        let botonesCliente = '<div style="padding: 15px 20px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px dashed #eee; background: #fff;">';
+        
+        // Botón Cancelar (Aparece solo si NO está enviado)
+        if (pedido.estado !== 'Enviado' && pedido.estado !== 'Entregado' && pedido.estado !== 'Cancelado') {
+            botonesCliente += `<button onclick="cancelarMiPedido('${pedido.id}')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; box-shadow:0 2px 5px rgba(231,76,60,0.3);">❌ Cancelar Pedido</button>`;
+        }
+        
+        // Botón Devolución (Aparece solo si YA ha sido enviado o entregado)
+        if (pedido.estado === 'Enviado' || pedido.estado === 'Entregado') {
+            const emailTaller = "giljulio9876@gmail.com"; // <--- ¡CAMBIA ESTO POR TU EMAIL REAL!
+            const asunto = encodeURIComponent(`Solicitud de Devolución - Pedido #${pedido.id}`);
+            const cuerpo = encodeURIComponent(`Hola Taller La Estación,\n\nQuiero solicitar la devolución del pedido #${pedido.id}.\n\nEl motivo de la devolución es:\n[Escribe aquí tu motivo]\n\n* Entiendo que la pieza no puede mostrar signos de haber sido montada ni manchada de grasa, y debe ir en su embalaje original.\n\nSaludos.`);
+            botonesCliente += `<a href="mailto:${emailTaller}?subject=${asunto}&body=${cuerpo}" style="background:#7f8c8d; color:white; text-decoration:none; padding:8px 15px; border-radius:5px; font-weight:bold; display:inline-block; box-shadow:0 2px 5px rgba(127,140,141,0.3);">📦 Solicitar Devolución</a>`;
+        }
+        botonesCliente += '</div>';
+
         html += `
             <div class="tarjeta-pedido" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
                 <div class="cabecera-pedido" style="background: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div class="info-pedido" style="color: white;">
                         <p style="margin: 0; font-size: 0.85em; color: #bdc3c7;">Pedido realizado: ${fechaBonita}</p>
-                        <p style="margin: 0; font-size: 1.1em; font-weight: bold;">ID: <span style="font-family: monospace; color: #f1c40f;">#${pedido.id.split('-')[0].toUpperCase()}</span></p>
+                        <p style="margin: 0; font-size: 1.1em; font-weight: bold;">ID: <span style="font-family: monospace; color: #f1c40f;">#${pedido.id.toString().split('-')[0].toUpperCase()}</span></p>
                     </div>
                     <div class="estado-pedido" style="background: #27ae60; color: white; font-weight: bold; padding: 6px 15px; border-radius: 20px; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         📦 ${pedido.estado}
@@ -1063,6 +1079,7 @@ window.cargarMisPedidos = async function() {
                         <span style="font-size: 1.8em; font-weight: 900; color: #e74c3c;">${Number(pedido.total).toFixed(2)}€</span>
                     </div>
                 </div>
+                ${botonesCliente}
             </div>
         `;
     });
@@ -1253,9 +1270,9 @@ window.cargarTodosLosPedidosAdmin = async function() {
                 </div>
                 
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button onclick="cambiarEstadoPedido(${p.id}, 'Enviado')" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🚚 Marcar Enviado</button>
-                    <button onclick="cambiarEstadoPedido(${p.id}, 'Entregado')" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✅ Entregado</button>
-                    <button onclick="cambiarEstadoPedido(${p.id}, 'Cancelado')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Cancelar y Avisar</button>
+                    <button onclick="cambiarEstadoPedido('${p.id}', 'Enviado')" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🚚 Marcar Enviado</button>
+                    <button onclick="cambiarEstadoPedido('${p.id}', 'Entregado')" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✅ Entregado</button>
+                    <button onclick="cambiarEstadoPedido('${p.id}', 'Cancelado')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Cancelar y Avisar</button>
                 </div>
             </div>
         `;
@@ -1276,5 +1293,24 @@ window.cambiarEstadoPedido = async function(id, nuevoEstado) {
     } else {
         mostrarNotificacionFlotante(`✅ Pedido actualizado a ${nuevoEstado}`, "#27ae60");
         window.cargarTodosLosPedidosAdmin();
+    }
+};
+// ==========================================
+// 16. CANCELAR MI PEDIDO (MODO CLIENTE)
+// ==========================================
+window.cancelarMiPedido = async function(id) {
+    if(!confirm("⚠️ ¿Seguro que quieres cancelar este pedido?\n\nSi aceptas, cancelaremos el envío. El reembolso del dinero puede tardar unos días en aparecer en tu tarjeta.")) return;
+
+    const { error } = await clienteSupabase
+        .from('pedidos')
+        .update({ estado: 'Cancelado' })
+        .eq('id', id);
+
+    if (error) {
+        mostrarNotificacionFlotante("❌ Error al cancelar el pedido", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante("✅ Pedido cancelado correctamente", "#27ae60");
+        // Recargamos la vista para que desaparezca el botón
+        if (typeof cargarMisPedidos === "function") cargarMisPedidos();
     }
 };
