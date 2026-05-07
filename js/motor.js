@@ -676,6 +676,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const session = authData.session;
 
     if (session) {
+        // 🔑 SEGURIDAD: Si el email es el tuyo, mostramos el acceso de admin
+        if (session.user.email === 'davidherrerogarcia12@gmail.com') { 
+            const linkAdmin = document.getElementById('link-admin-peticiones');
+            if(linkAdmin) linkAdmin.style.display = 'block';
+        }
+
         console.log("👤 Sesión activa confirmada:", session.user.email);
         sessionActiva = true; 
         usuarioId = session.user.id;
@@ -1152,3 +1158,54 @@ window.ejecutarEnvioRadar = async function(coche, pieza, contacto) {
         document.getElementById('radar-contacto').value = '';
     }
 };
+// ==========================================
+// 14. GESTIÓN DE PETICIONES (MODO ADMIN)
+// ==========================================
+window.cargarPeticionesAdmin = async function() {
+    const contenedor = document.getElementById('lista-peticiones-admin');
+    if (!contenedor) return;
+
+    // Pedimos los datos a Supabase ordenados por los más nuevos
+    const { data: peticiones, error } = await clienteSupabase
+        .from('peticiones_piezas')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        contenedor.innerHTML = "<p style='color:red;'>Error al cargar: " + error.message + "</p>";
+        return;
+    }
+
+    if (peticiones.length === 0) {
+        contenedor.innerHTML = "<p style='text-align:center; color:#7f8c8d;'>No hay peticiones nuevas por ahora. ¡Buen trabajo!</p>";
+        return;
+    }
+
+    let html = '';
+    peticiones.forEach(p => {
+        const fecha = new Date(p.created_at).toLocaleDateString();
+        html += `
+            <div style="background: white; border: 2px solid #eee; border-left: 5px solid #e74c3c; padding: 20px; border-radius: 10px; position: relative;">
+                <span style="position: absolute; top: 10px; right: 15px; font-size: 0.8em; color: #aaa;">${fecha}</span>
+                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🚗 Coche: ${p.coche}</h4>
+                <p style="margin: 0 0 15px 0; color: #1a252f; font-weight: bold;">⚙️ Pieza: ${p.pieza}</p>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; display: inline-block;">
+                    <span style="color: #7f8c8d; font-size: 0.9em;">Contacto:</span> 
+                    <a href="mailto:${p.contacto}" style="color: #e74c3c; font-weight: bold; text-decoration: none;">${p.contacto}</a>
+                </div>
+            </div>
+        `;
+    });
+    contenedor.innerHTML = html;
+};
+
+// Truco de mecánico: Le decimos a la pestaña que cargue los datos al hacer clic
+if (typeof window.abrirPestanaPerfil === "function") {
+    const originalAbrirPestana = window.abrirPestanaPerfil;
+    window.abrirPestanaPerfil = function(id) {
+        originalAbrirPestana(id); // Hace lo que ya hacía antes
+        if (id === 'tab-peticiones') {
+            window.cargarPeticionesAdmin(); // Y además carga las piezas si es la pestaña secreta
+        }
+    };
+}
