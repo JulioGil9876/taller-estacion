@@ -1061,3 +1061,94 @@ window.cargarMisPedidos = async function() {
 
     contenedor.innerHTML = html;
 };
+// ==========================================
+// 13. RADAR DE PETICIONES (Con verificación y Aviso)
+// ==========================================
+
+// 1. La función que lee los datos y comprueba el email
+window.enviarPeticionRadar = function() {
+    const coche = document.getElementById('radar-coche').value.trim();
+    const pieza = document.getElementById('radar-pieza').value.trim();
+    const contacto = document.getElementById('radar-contacto').value.trim();
+
+    if (!coche || !pieza || !contacto) {
+        mostrarNotificacionFlotante("⚠️ Por favor, rellena los 3 huecos para poder ayudarte.", "orange");
+        return;
+    }
+
+    // Filtro para obligar a que pongan un email válido con @
+    if (!contacto.includes('@')) {
+        mostrarNotificacionFlotante("⚠️ El contacto debe ser un email válido (te falta poner la '@').", "orange");
+        return;
+    }
+
+    // Si todo está bien, sacamos el cartel de advertencia
+    confirmarPeticionRadar(coche, pieza, contacto);
+};
+
+// 2. El Cartel (Modal) que avisa al cliente
+window.confirmarPeticionRadar = function(coche, pieza, contacto) {
+    let modal = document.getElementById('modal-radar-custom');
+    
+    // Si no existe, lo creamos de la nada
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-radar-custom';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+        document.body.appendChild(modal);
+    }
+
+    // Le metemos el texto personalizado con su email
+    modal.innerHTML = `
+        <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:450px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3); transform:scale(0.9); transition:0.2s;" id="caja-modal-radar">
+            <div style="font-size: 3.5em; margin-bottom: 10px;">👨‍🔧</div>
+            <h3 style="margin-top:0; color:#2c3e50; font-size:1.6em;">¿Seguro que quieres pedir esto?</h3>
+            <p style="color:#636e72; margin-bottom:25px; font-size: 1.05em; line-height: 1.6;">
+                ¡Ojo! Al darle a aceptar <b>nos vas a mandar a trabajar</b> y a buscar esta pieza debajo de las piedras.<br><br>
+                Si la encontramos a buen precio, te enviaremos un aviso directamente a <b style="color:#2c3e50;">${contacto}</b> para que puedas comprarla en la web. ¿Arrancamos la búsqueda?
+            </p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="cerrarModalRadar()" style="flex:1; padding:12px; border:none; background:#f1f2f6; color:#2d3436; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; transition:0.2s;">Pisar el freno</button>
+                <button id="btn-confirmar-radar" style="flex:1; padding:12px; border:none; background:#e74c3c; color:white; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; transition:0.2s; box-shadow:0 4px 10px rgba(231,76,60,0.3);">¡Darle Gas! 🚀</button>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('caja-modal-radar').style.transform = 'scale(1)', 10);
+
+    // Si le da a Darle Gas, enviamos a Supabase
+    document.getElementById('btn-confirmar-radar').onclick = () => {
+        cerrarModalRadar();
+        ejecutarEnvioRadar(coche, pieza, contacto);
+    };
+};
+
+// 3. Función para cerrar el cartel
+window.cerrarModalRadar = function() {
+    const modal = document.getElementById('modal-radar-custom');
+    const caja = document.getElementById('caja-modal-radar');
+    if(modal && caja) { 
+        caja.style.transform = 'scale(0.9)'; 
+        setTimeout(() => modal.style.display = 'none', 150); 
+    }
+};
+
+// 4. El envío real a Supabase
+window.ejecutarEnvioRadar = async function(coche, pieza, contacto) {
+    mostrarNotificacionFlotante("Buscando proveedores... ⚙️", "#3498db");
+
+    const { error } = await clienteSupabase.from('peticiones_piezas').insert([
+        { coche: coche, pieza: pieza, contacto: contacto }
+    ]);
+
+    if (error) {
+        console.error("Error al enviar petición:", error);
+        mostrarNotificacionFlotante("❌ Hubo un fallo de conexión.", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante("✅ ¡Taller avisado! Revisa tu email los próximos días.", "#27ae60");
+        document.getElementById('radar-coche').value = '';
+        document.getElementById('radar-pieza').value = '';
+        document.getElementById('radar-contacto').value = '';
+    }
+};

@@ -106,6 +106,17 @@
                 <div id="almacen-piezas" class="grid-recambios"></div>
 
                 <div id="paginacion-contenedor" style="margin-top: 40px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;"></div>
+                <div style="background: linear-gradient(135deg, #2c3e50, #1a252f); border-radius: 12px; padding: 30px; margin-top: 50px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 1.8em; margin-bottom: 10px;">🔍 ¿No encuentras lo que buscas?</h3>
+                    <p style="color: #bdc3c7; font-size: 1.1em; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto;">Somos mecánicos, no un supermercado automático. Dinos qué pieza necesitas para tu coche y te la localizamos con el mejor precio en 24/48h.</p>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 800px; margin: 0 auto;">
+                        <input type="text" id="radar-coche" placeholder="🚗 Marca, Modelo y Año" style="flex: 1; min-width: 200px; padding: 15px; border-radius: 8px; border: none; outline: none;">
+                        <input type="text" id="radar-pieza" placeholder="⚙️ ¿Qué pieza necesitas?" style="flex: 1; min-width: 200px; padding: 15px; border-radius: 8px; border: none; outline: none;">
+                        <input type="text" id="radar-contacto" placeholder="✉️ Email o Teléfono" style="flex: 1; min-width: 200px; padding: 15px; border-radius: 8px; border: none; outline: none;">
+                        <button onclick="enviarPeticionRadar()" style="background: #e74c3c; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);">Enviar Petición 🚀</button>
+                    </div>
+                </div>
             </main>          
 
         </div>
