@@ -13,6 +13,7 @@ let rutaActual = 'inicio';
 let filtroActual = 'todos';
 let busquedaActual = ''; 
 let cocheActual = ''; 
+let marcaActual = '';
 let criterioOrden = 'nuevo';
 
 let sessionActiva = false;
@@ -88,8 +89,10 @@ function generarFiltrosDeMarca() {
 window.filtrarMarca = (btn, marca) => {
     document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
     if(btn) { btn.style.background = '#2c3e50'; btn.style.color = 'white'; }
-    busquedaActual = marca === 'todas' ? '' : marca;
-    document.getElementById('input-busqueda').value = busquedaActual;
+    
+    // Ahora usa su propia variable, ya no se mete en el input del buscador a lo bruto
+    marcaActual = marca === 'todas' ? '' : marca;
+    if(document.getElementById('input-busqueda')) document.getElementById('input-busqueda').value = busquedaActual;
     paginaActual = 1; 
     renderizarVista();
 }
@@ -118,8 +121,12 @@ function actualizarEtiquetasFiltros() {
     const contenedor = document.getElementById('etiquetas-filtros-activos');
     if (!contenedor) return;
     let html = '';
+    
     if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
     if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
+    
+    // AQUÍ ESTÁ LA NUEVA ETIQUETA DE MARCA
+    if (marcaActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('marca')" style="background:#3498db; color:white; border-color:#3498db;" title="Quitar filtro de marca">Marca: ${marcaActual.toUpperCase()} ✖</div>`;
     
     if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;" title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
     
@@ -154,6 +161,12 @@ window.quitarFiltro = (tipo) => {
         const selectGaraje = document.getElementById('filtro-garaje');
         if (selectGaraje) selectGaraje.value = ''; 
     }
+    if (tipo === 'marca') {
+        marcaActual = '';
+        document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
+        const btnTodas = document.querySelector('.btn-marca-filtro[onclick*="todas"]');
+        if(btnTodas) { btnTodas.style.background = '#2c3e50'; btnTodas.style.color = 'white'; }
+    }
     renderizarVista();
 }
 
@@ -185,10 +198,16 @@ function renderizarVista() {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
-        let textoBusqueda = ((p.titulo||'') + (p.marca||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
+        
+        // NUEVA REGLA: Filtra por la marca seleccionada
+        let m = (marcaActual === '') || (p.marca && p.marca.toLowerCase() === marcaActual.toLowerCase()); 
+        
+        // Quitamos la marca del buscador de texto para no liar al cliente
+        let textoBusqueda = ((p.titulo||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
         let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
-        return r && f && b && c;
+        
+        return r && f && m && b && c; // Añadimos la "m"
     });
 
     filtradas.sort((a, b) => {
