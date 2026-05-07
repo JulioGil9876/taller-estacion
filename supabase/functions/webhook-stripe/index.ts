@@ -33,10 +33,12 @@ serve(async (req) => {
 
       // 🏠 CAMBIO CRÍTICO: Miramos en 'shipping_details' en lugar de 'customer_details'
       // Esto es porque en tu otro archivo pides la dirección de envío específicamente
+      // 🏠 CAMBIO CRÍTICO: Miramos en 'shipping_details' y ponemos saltos de línea (\n)
       const nombre = session.shipping_details?.name || session.customer_details?.name || 'Cliente'
       const dir = session.shipping_details?.address || session.customer_details?.address
       
-      const textoDireccion = `${nombre}. ${dir?.line1 || ''}, ${dir?.postal_code || ''} ${dir?.city || ''}, ${dir?.country || ''}`.trim()
+      // Así se guardará como una etiqueta de envío profesional
+      const textoDireccion = `${nombre}\n${dir?.line1 || ''}\n${dir?.postal_code || ''} ${dir?.city || ''}\n${dir?.country || ''}`.trim()
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''

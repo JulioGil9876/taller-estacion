@@ -943,6 +943,9 @@ window.filtrarPorMiCoche = function() {
 // ==========================================
 // 12. HISTORIAL DE PEDIDOS
 // ==========================================
+// ==========================================
+// 12. HISTORIAL DE PEDIDOS (VERSIÓN PREMIUM)
+// ==========================================
 window.cargarMisPedidos = async function() {
     const contenedor = document.getElementById('lista-mis-pedidos');
     if (!contenedor || !sessionActiva || !usuarioId) return;
@@ -978,16 +981,16 @@ window.cargarMisPedidos = async function() {
         const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
         const fechaBonita = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
 
+        // 1. Montamos la lista de piezas
         let articulosHtml = '';
         const listaArticulos = pedido.articulos || []; 
-        
         listaArticulos.forEach(art => {
             articulosHtml += `
-                <div class="articulo-pedido">
-                    <img src="${art.foto_url || 'https://via.placeholder.com/60'}" alt="Foto pieza">
+                <div class="articulo-pedido" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
+                    <img src="${art.foto_url || 'https://via.placeholder.com/60'}" alt="Foto pieza" style="width: 60px; height: 60px; object-fit: contain; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
                     <div class="articulo-info" style="flex-grow: 1;">
-                        <h4>${art.titulo || 'Pieza'}</h4>
-                        <span>Ref: ${art.referencia || 'N/A'}</span>
+                        <h4 style="margin: 0 0 5px 0; font-size: 1em; color: #2c3e50;">${art.titulo || 'Pieza'} <span style="background:#e74c3c; color:white; padding:2px 6px; border-radius:10px; font-size:0.8em; margin-left:5px;">x${art.cantidad || 1}</span></h4>
+                        <span style="color: #7f8c8d; font-size: 0.85em; font-family: monospace; background: #f1f2f6; padding: 2px 6px; border-radius: 4px;">Ref: ${art.referencia || 'N/A'}</span>
                     </div>
                     <div style="font-weight: bold; color: #e74c3c; font-size: 1.1em;">
                         ${art.precio || '0€'}
@@ -996,21 +999,42 @@ window.cargarMisPedidos = async function() {
             `;
         });
 
+        // 2. Montamos la dirección de envío bonita (Cambiamos los \n por <br> para HTML)
+        let direccionHtml = '';
+        if (pedido.direccion_envio) {
+            let dirLimpia = pedido.direccion_envio.replace(/\n/g, '<br>');
+            direccionHtml = `
+                <div style="background: #f1f2f6; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #3498db;">
+                    <strong style="color: #2c3e50; font-size: 0.9em; text-transform: uppercase;">📍 Dirección de Envío:</strong><br>
+                    <span style="color: #636e72; font-size: 0.95em; line-height: 1.5; display: inline-block; margin-top: 5px;">${dirLimpia}</span>
+                </div>
+            `;
+        }
+
+        // 3. Juntamos toda la tarjeta
         html += `
-            <div class="tarjeta-pedido">
-                <div class="cabecera-pedido">
-                    <div class="info-pedido">
-                        <p><strong>Pedido realizado:</strong> ${fechaBonita}</p>
-                        <p><strong>ID Pedido:</strong> <span style="font-family: monospace; font-size:0.9em; color:#7f8c8d;">#${pedido.id.split('-')[0].toUpperCase()}</span></p>
+            <div class="tarjeta-pedido" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                <div class="cabecera-pedido" style="background: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div class="info-pedido" style="color: white;">
+                        <p style="margin: 0; font-size: 0.85em; color: #bdc3c7;">Pedido realizado: ${fechaBonita}</p>
+                        <p style="margin: 0; font-size: 1.1em; font-weight: bold;">ID: <span style="font-family: monospace; color: #f1c40f;">#${pedido.id.split('-')[0].toUpperCase()}</span></p>
                     </div>
-                    <div class="estado-pedido">📦 ${pedido.estado}</div>
+                    <div class="estado-pedido" style="background: #27ae60; color: white; font-weight: bold; padding: 6px 15px; border-radius: 20px; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        📦 ${pedido.estado}
+                    </div>
                 </div>
-                <div class="cuerpo-pedido">
+                
+                <div class="cuerpo-pedido" style="padding: 20px;">
                     ${articulosHtml}
+                    ${direccionHtml}
                 </div>
-                <div class="pie-pedido">
-                    <span style="color: #7f8c8d; font-size: 0.9em; margin-right: 15px;">Total pagado:</span>
-                    <span style="font-size: 1.5em; font-weight: 900; color: #2c3e50;">${Number(pedido.total).toFixed(2)}€</span>
+                
+                <div class="pie-pedido" style="background: #f8f9fa; padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span style="color: #7f8c8d; font-size: 0.85em; background: #eef2f3; padding: 5px 10px; border-radius: 6px;">✉️ Factura oficial enviada al email</span>
+                    <div style="text-align: right;">
+                        <span style="color: #7f8c8d; font-size: 0.9em; margin-right: 10px;">Total pagado:</span>
+                        <span style="font-size: 1.8em; font-weight: 900; color: #e74c3c;">${Number(pedido.total).toFixed(2)}€</span>
+                    </div>
                 </div>
             </div>
         `;
