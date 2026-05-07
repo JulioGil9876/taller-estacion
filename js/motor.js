@@ -680,6 +680,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (session.user.email === 'davidherrerogarcia12@gmail.com') { 
             const linkAdmin = document.getElementById('link-admin-peticiones');
             if(linkAdmin) linkAdmin.style.display = 'block';
+            const linkAdminPedidos = document.getElementById('link-admin-pedidos');
+            if(linkAdminPedidos) linkAdminPedidos.style.display = 'block';
         }
 
         console.log("👤 Sesión activa confirmada:", session.user.email);
@@ -1203,9 +1205,76 @@ window.cargarPeticionesAdmin = async function() {
 if (typeof window.abrirPestanaPerfil === "function") {
     const originalAbrirPestana = window.abrirPestanaPerfil;
     window.abrirPestanaPerfil = function(id) {
-        originalAbrirPestana(id); // Hace lo que ya hacía antes
-        if (id === 'tab-peticiones') {
-            window.cargarPeticionesAdmin(); // Y además carga las piezas si es la pestaña secreta
-        }
+        originalAbrirPestana(id); 
+        if (id === 'tab-peticiones') window.cargarPeticionesAdmin();
+        if (id === 'tab-admin-pedidos') window.cargarTodosLosPedidosAdmin(); // <-- Nueva línea
     };
 }
+// ==========================================
+// 15. GESTIÓN GLOBAL DE PEDIDOS (MODO ADMIN)
+// ==========================================
+
+window.cargarTodosLosPedidosAdmin = async function() {
+    const contenedor = document.getElementById('lista-pedidos-global');
+    if (!contenedor) return;
+
+    const { data: pedidos, error } = await clienteSupabase
+        .from('pedidos')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        contenedor.innerHTML = "<p style='color:red;'>Error: " + error.message + "</p>";
+        return;
+    }
+
+    let html = '';
+    pedidos.forEach(p => {
+        const items = JSON.parse(p.items || '[]');
+        const fecha = new Date(p.fecha).toLocaleString();
+        
+        // Color según el estado
+        let colorEstado = "#f39c12"; // Naranja para pendiente
+        if(p.estado === 'Enviado') colorEstado = "#3498db";
+        if(p.estado === 'Entregado') colorEstado = "#27ae60";
+        if(p.estado === 'Cancelado') colorEstado = "#e74c3c";
+
+        html += `
+            <div style="background:white; border:1px solid #ddd; padding:20px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed #eee; padding-bottom:10px;">
+                    <span><b>Pedido #${p.id.toString().slice(-5)}</b> - ${fecha}</span>
+                    <span style="background:${colorEstado}; color:white; padding:4px 10px; border-radius:15px; font-size:0.85em; font-weight:bold;">${p.estado}</span>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <p style="margin:5px 0;">👤 <b>Cliente:</b> ${p.user_email}</p>
+                    <p style="margin:5px 0;">📍 <b>Dirección:</b> ${p.direccion}</p>
+                    <p style="margin:5px 0;">🛒 <b>Piezas:</b> ${items.map(i => i.titulo).join(', ')}</p>
+                    <p style="margin:5px 0; font-size:1.2em; color:#2c3e50;">💰 <b>Total: ${p.total.toFixed(2)}€</b></p>
+                </div>
+                
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="cambiarEstadoPedido(${p.id}, 'Enviado')" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🚚 Marcar Enviado</button>
+                    <button onclick="cambiarEstadoPedido(${p.id}, 'Entregado')" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✅ Entregado</button>
+                    <button onclick="cambiarEstadoPedido(${p.id}, 'Cancelado')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Cancelar y Avisar</button>
+                </div>
+            </div>
+        `;
+    });
+    contenedor.innerHTML = html || "<p>No hay ventas registradas aún.</p>";
+};
+
+window.cambiarEstadoPedido = async function(id, nuevoEstado) {
+    if(!confirm(`¿Seguro que quieres cambiar el pedido a "${nuevoEstado}"?`)) return;
+
+    const { error } = await clienteSupabase
+        .from('pedidos')
+        .update({ estado: nuevoEstado })
+        .eq('id', id);
+
+    if (error) {
+        mostrarNotificacionFlotante("❌ Error al actualizar estado", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante(`✅ Pedido actualizado a ${nuevoEstado}`, "#27ae60");
+        window.cargarTodosLosPedidosAdmin();
+    }
+};

@@ -42,6 +42,7 @@
             <a href="recambios.html?vista=favoritos">❤️ Mis Favoritos</a>
             <a onclick="abrirPestanaPerfil('tab-ajustes')" style="color: #aaa;">⚙️ Ajustes de Seguridad</a>
             <a onclick="abrirPestanaPerfil('tab-peticiones')" id="link-admin-peticiones" style="background: #fffbe8; color: #d6a200; border-bottom: 1px solid #ffd32a; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">🔍 Ver Peticiones (Admin)</a>
+            <a onclick="abrirPestanaPerfil('tab-admin-pedidos')" id="link-admin-pedidos" style="background: #e8f4fd; color: #2980b9; border-bottom: 1px solid #3498db; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">📦 Gestión de Pedidos (Admin)</a>
             <br>
             <button onclick="cerrarSesionSegura()" class="btn-rojo" style="width: 100%; padding: 12px; background: #fdf2f2; color: #e74c3c !important; border: 1px solid #fadbd8; box-shadow: none;">🚪 Salir de forma segura</button>
         </aside>
@@ -105,6 +106,12 @@
                 
                 <div id="lista-peticiones-admin" style="display: flex; flex-direction: column; gap: 15px;">
                     <p style="text-align: center; color: #aaa;">Cargando peticiones...</p>
+                </div>
+            </div>
+            <div id="tab-admin-pedidos" class="contenido-perfil-tab" style="display: none;">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Gestión de Ventas y Envíos</h2>
+                <div id="lista-pedidos-global" style="display: flex; flex-direction: column; gap: 20px;">
+                    <p style="text-align: center; color: #aaa;">Cargando expediciones...</p>
                 </div>
             </div>
             <!-- Pestaña 4: Ajustes -->
