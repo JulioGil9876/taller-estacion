@@ -150,3 +150,215 @@ body { background-color: var(--fondo-gris); color: var(--texto); line-height: 1.
 .articulo-info h4 { margin: 0 0 5px 0; font-size: 1em; color: #2c3e50; }
 .articulo-info span { color: #7f8c8d; font-size: 0.85em; font-family: monospace; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; }
 .pie-pedido { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
+/* ==========================================
+   📱 KIT DE SUSPENSIÓN PREMIUM (MÓVILES)
+   ========================================== */
+
+/* 1. Evitar que se seleccione el texto por error o salga un cuadro azul al tocar botones */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 2. Evitar que el iPhone haga "zoom" automático al tocar los inputs del buscador o login */
+input, select, textarea {
+    font-size: 16px !important; 
+}
+
+@media (max-width: 768px) {
+    /* 3. Arreglo del Carrito: Evita que se corte en móviles estrechos (como iPhone SE) */
+    #panel-carrito {
+        width: 100% !important; /* Ocupa todo el ancho */
+        max-width: 100vw !important;
+        right: -100% !important; /* Ajuste para la animación de cierre */
+    }
+
+    /* 4. Botones y zonas táctiles más amigables para pulgares */
+    button, .btn-rojo, .btn-icono-accion, select {
+        min-height: 48px !important; /* Altura mínima recomendada por Apple/Google */
+    }
+
+    /* 5. Ajuste de Modales (Login, Subir Pieza, Detalles) para aprovechar la pantalla */
+    .modal-box, .modal-auth-content {
+        width: 95% !important;
+        padding: 25px 15px !important; /* Menos padding lateral para que quepa más texto */
+        margin: 10px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important; /* Permite hacer scroll si el modal es muy largo */
+    }
+
+    /* 6. El panel de Perfil / Administrador en una sola columna limpia */
+    .panel-grid {
+        padding: 10px !important;
+        margin: 20px auto !important;
+    }
+    
+    .contenido-perfil {
+        padding: 20px !important;
+    }
+
+    /* 7. Ajuste de las columnas de los formularios en el móvil */
+    #tab-subir-piezas div[style*="display:flex"] {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    #tab-subir-piezas .flex-1, 
+    #tab-subir-piezas div[style*="flex:1"],
+    #tab-subir-piezas div[style*="flex:2"] {
+        width: 100% !important;
+    }
+}
+/* ==========================================
+   📱 KIT DE CARROCERÍA INTEGRAL (MÓVIL TOTAL)
+   ========================================== */
+@media (max-width: 768px) {
+    
+    /* 1. Cabecera y Menú: Todo centrado y apilado */
+    .cabecera {
+        flex-direction: column !important;
+        padding: 15px !important;
+        gap: 15px !important;
+        text-align: center;
+    }
+    .menu {
+        width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+    .menu a, .menu button {
+        font-size: 0.9em !important;
+        padding: 8px 12px !important;
+    }
+    .menu div[style*="margin-left: auto"] {
+        margin-left: 0 !important; /* Centra el carrito y el login */
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    /* 2. Escaparate Inicial (Hero): Textos más legibles */
+    .hero { padding: 60px 15px !important; }
+    .hero h1 { font-size: 2.2em !important; }
+    .hero p { font-size: 1.1em !important; }
+    .botones-hero { flex-direction: column !important; width: 100% !important; padding: 0 !important; }
+    .botones-hero a { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
+
+    /* 3. Rejillas de 1 sola columna (Servicios, Catálogo y Footer) */
+    .grid-servicios, 
+    .grid-recambios, 
+    .grid-coches,
+    .footer-contenedor {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* 4. Buscador y Filtros del Catálogo: Ocupan el 100% del ancho */
+    .controles-superiores {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .controles-superiores input, 
+    .controles-superiores select {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 5. El Radar de Peticiones (Cajas alineadas en vertical) */
+    div[style*="justify-content: center; max-width: 800px;"] {
+        flex-direction: column !important;
+    }
+    div[style*="justify-content: center; max-width: 800px;"] input,
+    div[style*="justify-content: center; max-width: 800px;"] button {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* 6. Seguridad contra desbordamientos (¡Súper importante!) */
+    input, select, textarea, button, .tarjeta-servicio, .contenido-perfil {
+        box-sizing: border-box !important; /* Evita que el padding ensanche la caja */
+    }
+    
+    body, html {
+        overflow-x: hidden !important; /* Prohíbe que la pantalla se pueda mover hacia los lados */
+    }
+
+    /* 7. Ajuste de textos largos para que no rompan la pantalla */
+    p, h1, h2, h3, h4, a, span {
+        word-break: break-word !important; 
+    }
+}
+/* ==========================================
+   📱 AJUSTE FINO PREMIUM: 2 COLUMNAS Y ESTILO APP COMPACTA
+   ========================================== */
+@media (max-width: 768px) {
+    
+    /* 1. LA MAGIA: 2 piezas por fila con espacio perfecto */
+    .grid-recambios {
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 12px !important; 
+        padding: 5px !important;
+    }
+
+    /* 2. Tarjetas más finas para que quepan dos sin agobiar */
+    .grid-recambios > div {
+        padding: 10px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+    
+    /* Imágenes proporcionadas (ni muy grandes ni muy pequeñas) */
+    .grid-recambios > div img {
+        height: 120px !important; 
+        width: 100% !important;
+        object-fit: contain !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Textos de las piezas modo profesional */
+    .grid-recambios > div h3 {
+        font-size: 0.95em !important; 
+        margin-bottom: 5px !important;
+        line-height: 1.3 !important;
+        height: auto !important;
+    }
+    
+    .grid-recambios > div p {
+        font-size: 0.8em !important; /* Texto gris descriptivo más pequeño */
+        margin-bottom: 8px !important;
+    }
+
+    /* Precio resaltado pero compacto */
+    .grid-recambios > div .precio {
+        font-size: 1.1em !important;
+        font-weight: 800 !important;
+    }
+
+    /* Botón de añadir a la cesta más finito */
+    .grid-recambios > div button {
+        padding: 8px !important;
+        font-size: 0.85em !important;
+        min-height: 35px !important;
+        margin-top: 10px !important;
+    }
+
+    /* 3. ACHICAR EL RESTO DE LA APP PARA QUE NO GOBIERNE LA PANTALLA */
+    body { font-size: 14px !important; }
+    
+    /* Buscadores y filtros más discretos */
+    .controles-superiores input, 
+    .controles-superiores select {
+        padding: 10px !important;
+        font-size: 0.9em !important;
+        min-height: 40px !important;
+    }
+
+    /* El Hero (pantalla de inicio) más recogido */
+    .hero { padding: 40px 15px !important; }
+    .hero h1 { font-size: 1.8em !important; }
+    .hero p { font-size: 1em !important; }
+}

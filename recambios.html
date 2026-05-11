@@ -22,6 +22,10 @@
         }
         .btn-ruta-v:hover { border-color: #e74c3c !important; color: #e74c3c !important; }
         #input-busqueda:focus { border-color: #e74c3c !important; box-shadow: 0 0 8px rgba(231, 76, 60, 0.2) !important; }
+        /* Efecto hover para los desplegables */
+        .select-interactivo { transition: all 0.3s ease; }
+        .select-interactivo:hover { border-color: #e74c3c !important; box-shadow: 0 4px 10px rgba(231,76,60,0.1) !important; }
+        .select-interactivo:focus { border-color: #e74c3c !important; outline: none !important; box-shadow: 0 0 8px rgba(231, 76, 60, 0.2) !important; }
     </style>
 </head>
 <body>
@@ -92,20 +96,21 @@
                 <!-- CAJA DE CONTROLES ALINEADOS REPARADA -->
                 <div class="controles-superiores" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; align-items: center; width: 100%;">
                     
-                    <input type="text" id="input-busqueda" placeholder="🔍 Buscar por nombre, ref o coche..." 
-                           style="flex: 1; min-width: 200px; padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <input type="text" id="input-busqueda" placeholder="🔍 Buscar por nombre, ref o coche..." 
+                    style="flex: 1; min-width: 200px; padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
 
-                    <select id="filtro-garaje" onchange="filtrarPorMiCoche()" style="padding: 12px 15px; border-radius: 8px; border: 2px solid #2c3e50; font-weight: bold; color: #2c3e50; background-color: #f8f9fa; cursor: pointer; outline: none; display: none; max-width: 300px; font-size: 1em;">
-                        <option value="">🚗 Filtrar para mi coche...</option>
-                    </select>
+                <select id="ordenar-por" class="select-interactivo" style="padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; outline: none; color: #333; font-weight: 600;">
+                    <option value="nuevo">✨ Novedades</option>
+                    <option value="barato">📉 Precio: Menor</option>
+                    <option value="caro">📈 Precio: Mayor</option>
+                    <option value="nombre">🔤 Nombre A-Z</option>
+                </select>
 
-                    <select id="ordenar-por" style="padding: 12px; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; outline: none; color: #333; font-weight: 600;">
-                        <option value="nuevo">✨ Novedades</option>
-                        <option value="barato">📉 Precio: Menor</option>
-                        <option value="caro">📈 Precio: Mayor</option>
-                        <option value="nombre">🔤 Nombre A-Z</option>
-                    </select>
-                </div>
+                <select id="filtro-garaje" class="select-interactivo" onchange="filtrarPorMiCoche()" style="padding: 12px 15px; border-radius: 8px; border: 1px solid #ccc; color: #636e72; background-color: #f8f9fa; cursor: pointer; outline: none; display: none; max-width: 180px; font-size: 0.95em;">
+                    <option value="">🚗 Mi Vehículo...</option>
+                </select>
+
+            </div>
 
                 <div id="etiquetas-filtros-activos" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;"></div>
 

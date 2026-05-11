@@ -894,7 +894,7 @@ window.cargarMisCoches = async function() {
 
     if (filtroGaraje) {
         filtroGaraje.style.display = "inline-block"; 
-        filtroGaraje.innerHTML = '<option value="">🚗 Filtrar piezas para mi coche...</option>';
+        filtroGaraje.innerHTML = '<option value="">🚗 Mi Vehículo</option>';
         coches.forEach(coche => {
             filtroGaraje.innerHTML += `<option value="${coche.modelo}">${coche.modelo}</option>`;
         });
