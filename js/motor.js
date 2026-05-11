@@ -703,6 +703,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(linkAdmin) linkAdmin.style.display = 'block';
             const linkAdminPedidos = document.getElementById('link-admin-pedidos');
             if(linkAdminPedidos) linkAdminPedidos.style.display = 'block';
+            // NUEVO: Mostramos el botón de subir piezas
+            const linkAdminPiezas = document.getElementById('link-admin-piezas');
+            if(linkAdminPiezas) linkAdminPiezas.style.display = 'block';
         }
 
         console.log("👤 Sesión activa confirmada:", session.user.email);
@@ -1376,5 +1379,57 @@ window.rechazarCookiesTaller = () => {
         cartel.style.transform = 'translateY(100%)';
         cartel.style.transition = '0.3s';
         setTimeout(() => cartel.remove(), 300);
+    }
+};
+// ==========================================
+// 18. SUBIR PIEZAS AL CATÁLOGO (MODO ADMIN)
+// ==========================================
+window.enviarPiezaNube = async function() {
+    const titulo = document.getElementById('nueva-titulo').value.trim();
+    const referencia = document.getElementById('nueva-referencia').value.trim();
+    const marca = document.getElementById('nueva-marca').value.trim();
+    const coche = document.getElementById('nueva-coche').value.trim();
+    const precio = document.getElementById('nueva-precio').value.trim();
+    const estado = document.getElementById('nueva-estado').value;
+    const stock = parseInt(document.getElementById('nueva-stock').value) || 1;
+    const foto = document.getElementById('nueva-foto').value.trim();
+
+    if (!titulo || !referencia || !precio) {
+        return mostrarNotificacionFlotante("⚠️ Título, Referencia y Precio son obligatorios.", "orange");
+    }
+
+    const btn = document.getElementById('btn-subir-bd');
+    const txtO = btn.innerText;
+    btn.innerText = "Subiendo... ⏳";
+    btn.disabled = true;
+
+    // Insertamos en la tabla 'productos' de Supabase
+    const { error } = await clienteSupabase.from('productos').insert([{
+        titulo: titulo,
+        referencia: referencia,
+        marca: marca,
+        compatible_con: coche,
+        precio: precio,
+        estado: estado,
+        stock: stock,
+        foto_url: foto || 'https://via.placeholder.com/300?text=Sin+Foto',
+        seccion: 'varios', // Por defecto a Varios
+        filtro: 'general'
+    }]);
+
+    btn.innerText = txtO;
+    btn.disabled = false;
+
+    if (error) {
+        console.error(error);
+        mostrarNotificacionFlotante("❌ Error al subir: La referencia podría estar repetida.", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante("✅ ¡Pieza subida al catálogo con éxito!", "#27ae60");
+        // Limpiamos el formulario para la siguiente
+        document.getElementById('nueva-titulo').value = '';
+        document.getElementById('nueva-referencia').value = '';
+        document.getElementById('nueva-foto').value = '';
+        
+        cargarPiezasDesdeLaNube(); // Refrescamos el almacén invisible
     }
 };
