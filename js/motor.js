@@ -1348,7 +1348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         divCookies.innerHTML = `
             <p style="margin:0; font-size:0.95em; line-height:1.4;">
                 <b>¡Aviso de taller! 🛠️</b> Usamos cookies estrictamente necesarias para recordar las piezas de tu cesta y mantener tu garaje seguro. Si sigues navegando, asumimos que te parece bien. 
-                <a href="#aviso-legal" style="color:#f1c40f; text-decoration:underline;">Saber más</a>
+                <a href="legal.html" style="color:#f1c40f; text-decoration:underline;">Saber más</a>
             </p>
             <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:5px;">
                 <button onclick="rechazarCookiesTaller()" style="background:#7f8c8d; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.95em; transition:0.2s;" onmouseover="this.style.background='#95a5a6'" onmouseout="this.style.background='#7f8c8d'">Rechazar</button>
