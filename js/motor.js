@@ -259,8 +259,10 @@ function renderizarVista() {
                     <div style="margin-top:auto; padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
                         ${precioHtml}
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:15px; position:relative; z-index:25;">
+                    <div style="display:flex; gap:8px; margin-top:15px; position:relative; z-index:25;">
                         ${btnAñadir}
+                        <button id="btn-fav-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="${esFavorito ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:45px; border-radius:6px; cursor:pointer; font-size:1.2em; transition: 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Guardar en favoritos">${esFavorito ? '❤️' : '🤍'}</button>
+                        <button onclick="compartirPieza('${p.referencia}', event)" style="background:#f1f2f6; border:none; width:45px; border-radius:6px; cursor:pointer; font-size:1.2em; transition: 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Copiar enlace de esta pieza">🔗</button>
                     </div>
                 </div>
             </div>`;
@@ -345,6 +347,9 @@ window.toggleFavorito = async (ref, e) => {
 // ==========================================
 // 6. SISTEMA DE MODAL (VENTANA DE DETALLES)
 // ==========================================
+// ==========================================
+// 6. SISTEMA DE MODAL (VENTANA DE DETALLES)
+// ==========================================
 window.abrirModal = (ref) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
@@ -354,15 +359,14 @@ window.abrirModal = (ref) => {
     let miniaturasHtml = fotos.length > 1 ? `<div class="contenedor-miniaturas" style="display:flex; gap:10px; overflow-x:auto; padding:10px; justify-content:center;">` + fotos.map((f, i) => `<img src="${f}" class="mini-foto ${i===0?'activa':''}" onclick="cambiarFoto(this, '${f}')" style="width:70px; height:70px; object-fit:cover; border:2px solid ${i===0?'#e74c3c':'#ddd'}; border-radius:8px; cursor:pointer; opacity:${i===0?'1':'0.6'}; transition:0.2s;">`).join('') + `</div>` : '';
     
     let esFav = sessionActiva && favoritosNube.includes(p.referencia);
-    let linkWhatsapp = `https://wa.me/34600000000?text=${encodeURIComponent('¡Hola! He visto en la web esta pieza detallada:\n\n- Pieza: ' + (p.titulo||'') + '\n- Referencia: ' + (p.referencia||'') + '\n\nMe gustaría saber si es compatible con mi coche.')}`;
-
-    // MAGIA DEL STOCK AQUÍ TAMBIÉN:
     let agotado = p.stock !== undefined && p.stock <= 0;
+    
     let btnAñadir = agotado 
         ? `<button disabled style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em; background:#bdc3c7; color:white; border:none; cursor:not-allowed; font-weight:bold;">❌ Agotado temporalmente</button>` 
         : `<button onclick="añadirAlCarrito('${p.referencia}', event); cerrarModal()" class="btn-rojo" style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em;">🛒 Añadir al Carrito</button>`;
+        
     let avisoStock = agotado ? `<span style="background:#e74c3c; color:white; padding:4px 10px; border-radius:4px; font-size:0.8em; font-weight:bold; margin-left:10px; vertical-align:middle;">SIN STOCK</span>` : '';
-
+    
     document.getElementById('modal-contenido-dinamico').innerHTML = `
         <div style="display:flex; flex-wrap:wrap;">
             <div style="flex:1 1 450px; background:#f8f9fa; padding:40px; display:flex; flex-direction:column; align-items:center; border-right:1px solid #eee;">
@@ -381,12 +385,19 @@ window.abrirModal = (ref) => {
                     <h4 style="margin-top:0; color:#2d3436; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; font-size:0.9em;">Especificaciones Técnicas</h4>
                     <p style="font-size:0.95em; color:#636e72; line-height:1.6; margin:0;">${p.descripcion_larga || 'Contacta para detalles técnicos específicos.'}</p>
                 </div>
+                
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:10px; gap:20px; border-top:1px solid #eee; padding-top:25px;">
-                    <div><span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br><span style="font-size:2.8em; font-weight:900; color:${agotado ? '#bdc3c7' : '#e74c3c'}; line-height:1;">${p.precio || 'Consultar'}</span></div>
+                    <div>
+                        <span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br>
+                        <span style="font-size:2.8em; font-weight:900; color:${agotado ? '#bdc3c7' : '#e74c3c'}; line-height:1;">${p.precio || 'Consultar'}</span>
+                    </div>
+                    
                     <div style="display:flex; gap:10px;">
-                        <button id="btn-fav-modal-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${esFav ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em;">${esFav ? '❤️' : '🤍'}</button>
+                        <button id="btn-fav-modal-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${esFav ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Guardar en favoritos">${esFav ? '❤️' : '🤍'}</button>
+                        <button onclick="compartirPieza('${p.referencia}', event)" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Copiar enlace de esta pieza">🔗</button>
                     </div>
                 </div>
+                
                 <div style="display:flex; gap:10px; margin-top:20px; width:100%;">
                     ${btnAñadir}
                 </div>
@@ -503,6 +514,16 @@ window.comprobarCheckout = async () => {
         return; 
     } 
     
+    // NUEVO: Verificación del Checkbox Legal de Devoluciones
+    const checkboxLegal = document.getElementById('checkbox-legal-carrito');
+    if (checkboxLegal && !checkboxLegal.checked) {
+        mostrarNotificacionFlotante("⚠️ Debes aceptar las Condiciones de Venta y Devolución antes de pagar", "orange");
+        // Hacemos que el checkbox parpadee para que lo vean
+        checkboxLegal.parentElement.style.color = '#e74c3c';
+        setTimeout(() => checkboxLegal.parentElement.style.color = '#7f8c8d', 1000);
+        return;
+    }
+
     const btnCheckout = document.querySelector('#footer-carrito button');
     const txtOriginal = btnCheckout.innerHTML;
     btnCheckout.innerHTML = "Conectando con el banco... 🔐";
@@ -1312,5 +1333,48 @@ window.cancelarMiPedido = async function(id) {
         mostrarNotificacionFlotante("✅ Pedido cancelado correctamente", "#27ae60");
         // Recargamos la vista para que desaparezca el botón
         if (typeof cargarMisPedidos === "function") cargarMisPedidos();
+    }
+};
+// ==========================================
+// 17. ESCUDO LEGAL (COOKIES)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Si el cliente no ha aceptado las cookies aún, le sacamos el cartel
+    if (!localStorage.getItem('cookies_aceptadas_taller')) {
+        const divCookies = document.createElement('div');
+        divCookies.id = 'cartel-cookies';
+        divCookies.style.cssText = 'position:fixed; bottom:0; left:0; width:100%; background:#2c3e50; color:white; padding:15px 20px; text-align:center; z-index:99999; box-shadow:0 -5px 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-top: 3px solid #e74c3c;';
+        
+        divCookies.innerHTML = `
+            <p style="margin:0; font-size:0.95em; line-height:1.4;">
+                <b>¡Aviso de taller! 🛠️</b> Usamos cookies estrictamente necesarias para recordar las piezas de tu cesta y mantener tu garaje seguro. Si sigues navegando, asumimos que te parece bien. 
+                <a href="#aviso-legal" style="color:#f1c40f; text-decoration:underline;">Saber más</a>
+            </p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:5px;">
+                <button onclick="rechazarCookiesTaller()" style="background:#7f8c8d; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.95em; transition:0.2s;" onmouseover="this.style.background='#95a5a6'" onmouseout="this.style.background='#7f8c8d'">Rechazar</button>
+                <button onclick="aceptarCookiesTaller()" style="background:#27ae60; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.95em; transition:0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Aceptar Todas</button>
+            </div>
+        `;
+        document.body.appendChild(divCookies);
+    }
+});
+
+window.aceptarCookiesTaller = () => {
+    localStorage.setItem('cookies_aceptadas_taller', 'true');
+    const cartel = document.getElementById('cartel-cookies');
+    if (cartel) {
+        cartel.style.transform = 'translateY(100%)';
+        cartel.style.transition = '0.3s';
+        setTimeout(() => cartel.remove(), 300);
+    }
+};
+window.rechazarCookiesTaller = () => {
+    localStorage.setItem('cookies_aceptadas_taller', 'rechazadas');
+    // Aquí en el futuro, si pones Google Analytics, le dirás por código que no rastree a este usuario
+    const cartel = document.getElementById('cartel-cookies');
+    if (cartel) {
+        cartel.style.transform = 'translateY(100%)';
+        cartel.style.transition = '0.3s';
+        setTimeout(() => cartel.remove(), 300);
     }
 };
