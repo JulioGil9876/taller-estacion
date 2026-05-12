@@ -285,6 +285,12 @@ padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
     background: #f1f2f6;
     padding: 3px 6px;
     border-radius: 4px;
+    /* 🛡️ El escudo anti-referencias kilométricas: */
+    max-width: 55%; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-align: right;
 }
 
 /* Título PC */
