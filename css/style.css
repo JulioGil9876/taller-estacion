@@ -49,7 +49,10 @@ body { background-color: var(--fondo-gris); color: var(--texto); line-height: 1.
 
 /* --- CHIPS DE FILTROS --- */
 .chip-filtro { background: #eef2f3; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; color: var(--oscuro); border: 1px solid #dfe6e9; cursor: pointer; }
-.chip-filtro:hover { background: var(--rojo-motor); color: white; }
+/* Escudo para que el rojo solo funcione con ratón y no se atasque en móvil */
+@media (hover: hover) {
+    .chip-filtro:hover { background: var(--rojo-motor); color: white; }
+}
 
 /* --- SISTEMA DE PAGINACIÓN --- */
 #paginacion-contenedor { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 40px 0; padding: 20px; flex-wrap: wrap; width: 100%; }
@@ -105,13 +108,24 @@ body { background-color: var(--fondo-gris); color: var(--texto); line-height: 1.
     .menu { margin-top: 15px; gap: 15px; flex-wrap: wrap; justify-content: center; width: 100%; }
     .hero h1 { font-size: 2em; }
     .sidebar-filtros { position: relative; top: 0; max-height: none; margin-bottom: 20px; }
-    #almacen-piezas { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
+    #almacen-piezas { 
+        grid-template-columns: repeat(2, 1fr) !important; /* 2 piezas fijas por fila */
+        gap: 10px !important; 
+    }
 }
 
 @media (max-width: 480px) {
     .cabecera { padding: 10px 5px !important; }
     .menu { display: flex; flex-direction: column !important; align-items: center; gap: 8px !important; margin-top: 10px; }
-    .menu a, .menu span { margin: 0 !important; padding: 5px !important; font-size: 0.85em !important; display: block; width: 100%; text-align: center; }
+    .menu a, .menu span { 
+        margin: 0 !important; 
+        padding: 5px !important; 
+        font-size: 0.85em !important; 
+        display: inline-block !important; /* Evita que rompan la línea */
+        width: auto !important; 
+        text-align: center; 
+        white-space: nowrap !important; /* Soldadura antidesgarros */
+    }
     .logo h2 { font-size: 1.3em !important; }
     .btn-paginacion { padding: 8px 14px; font-size: 0.85em; }
 }
@@ -213,12 +227,13 @@ input, select, textarea {
    ========================================== */
 @media (max-width: 768px) {
     
-    /* 1. Cabecera y Menú: Todo centrado y apilado */
+    /* 1. Cabecera y Menú: Formato normal para móviles */
     .cabecera {
-        flex-direction: column !important;
-        padding: 15px !important;
-        gap: 15px !important;
-        text-align: center;
+        flex-direction: row !important; /* Mantiene el logo y el menú en la misma línea */
+        padding: 8px 15px !important; /* Reduce la altura para que sea más pequeño */
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 10px !important;
     }
     .menu {
         width: 100% !important;
@@ -226,14 +241,16 @@ input, select, textarea {
         flex-wrap: wrap !important;
         gap: 10px !important;
     }
-    .menu a, .menu button {
+    ..menu a, .menu button {
         font-size: 0.9em !important;
         padding: 8px 12px !important;
+        white-space: nowrap !important; /* Mantiene las palabras juntas al apaisar */
+    }
     }
     .menu div[style*="margin-left: auto"] {
-        margin-left: 0 !important; /* Centra el carrito y el login */
-        justify-content: center !important;
-        width: 100% !important;
+        margin-left: auto !important; /* Lo empuja a la derecha */
+        justify-content: flex-end !important;
+        width: auto !important;
     }
 
     /* 2. Escaparate Inicial (Hero): Textos más legibles */
