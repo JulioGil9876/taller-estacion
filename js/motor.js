@@ -751,71 +751,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // 1. EL DETECTOR DE CAMBIO DE CONTRASEÑA (VERSIÓN BLINDADA)
-    
-    // Fusible manual: Si la URL del navegador trae el código de recuperación, saca la ventana sí o sí.
-    if (window.location.hash.includes('type=recovery')) {
-        setTimeout(() => mostrarVentanaNuevaPass(), 500); 
-    }
+    // --- 1. EL DETECTOR INFALIBLE DE RECUPERACIÓN ---
+    // Atrapamos la URL nada más cargar la página, antes de que Supabase la borre
+    let modoRecuperacion = window.location.href.includes('type=recovery');
 
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            mostrarVentanaNuevaPass();
-        } else if (event === 'SIGNED_IN' && !sessionActiva && !window.location.hash.includes('type=recovery')) {
-            // Solo recarga la web si NO venimos de recuperar contraseña
+        console.log("Centralita Supabase dice:", event); 
+        
+        if (event === 'PASSWORD_RECOVERY' || modoRecuperacion) {
+            modoRecuperacion = true; // Activamos el escudo
+            setTimeout(() => mostrarVentanaNuevaPass(), 300); // Retardo táctico
+        } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
+            // ¡ESCUDO! Solo recarga si NO estamos recuperando clave
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
             window.location.reload();
         }
     });
 
-// 2. LA VENTANA BONITA PARA METER LA CLAVE NUEVA
+// --- 2. LA VENTANA DE LA LLAVE NUEVA ---
 window.mostrarVentanaNuevaPass = function() {
-    // Si ya existe la ventana, no la creamos 2 veces
-    if(document.getElementById('modal-cambio-pass')) return;
+    if(document.getElementById('modal-cambio-pass')) return; // Evita que salgan dos
 
     const modal = document.createElement('div');
     modal.id = 'modal-cambio-pass';
-    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);';
     
     modal.innerHTML = `
         <div style="background:white; padding:40px; border-radius:15px; text-align:center; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-            <div style="font-size: 3em; margin-bottom: 10px;">🔐</div>
+            <div style="font-size: 3.5em; margin-bottom: 10px;">🔐</div>
             <h2 style="color:#2c3e50; margin-top:0; margin-bottom:10px;">Nueva Contraseña</h2>
             <p style="color:#7f8c8d; margin-bottom:25px; font-size:0.95em;">Escribe tu nueva llave de acceso para el taller.</p>
-            
             <input type="password" id="input-nueva-pass" placeholder="Mínimo 6 caracteres" style="width:100%; padding:15px; border:2px solid #eee; border-radius:8px; font-size:1.1em; margin-bottom:20px; box-sizing:border-box; outline:none; text-align:center;">
-            
             <button id="btn-guardar-pass" onclick="ejecutarCambioPass()" style="width:100%; padding:15px; background:#27ae60; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1em; cursor:pointer; transition:0.2s;">Guardar Contraseña</button>
         </div>
     `;
     document.body.appendChild(modal);
 };
 
-// 3. LA ORDEN AL MOTOR PARA CAMBIARLA DE VERDAD
+// --- 3. GRABAR A FUEGO LA CLAVE ---
 window.ejecutarCambioPass = async function() {
     const nueva = document.getElementById('input-nueva-pass').value;
-    if (nueva.length < 6) return mostrarNotificacionFlotante("⚠️ Debe tener al menos 6 caracteres", "orange");
+    if (nueva.length < 6) return alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
     
     const btn = document.getElementById('btn-guardar-pass');
     btn.innerText = "Guardando... ⏳";
     btn.disabled = true;
 
-    // Aquí Supabase graba a fuego la nueva contraseña
+    // Supabase actualiza la clave aquí
     const { error } = await clienteSupabase.auth.updateUser({ password: nueva });
 
     if (error) {
-        mostrarNotificacionFlotante("❌ Error: " + error.message, "#e74c3c");
+        alert("❌ Error: " + error.message);
         btn.innerText = "Guardar Contraseña";
         btn.disabled = false;
     } else {
-        mostrarNotificacionFlotante("✅ ¡Contraseña actualizada con éxito!", "#27ae60");
-        // Limpiamos la URL para que no vuelva a saltar si refrescamos
-        window.history.replaceState(null, null, window.location.pathname);
-        setTimeout(() => {
-            document.getElementById('modal-cambio-pass').remove();
-            window.location.href = 'perfil.html'; 
-        }, 1500);
+        alert("✅ ¡Contraseña actualizada con éxito! Entrando al taller...");
+        window.location.hash = ''; // Limpiamos la URL para no dejar rastro
+        window.location.href = 'perfil.html'; // Al panel de control directos
     }
 };
 
