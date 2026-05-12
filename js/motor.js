@@ -236,36 +236,38 @@ function renderizarVista() {
         let estiloTarjeta = agotado ? 'opacity:0.75; filter:grayscale(80%);' : '';
 
         html += `
-            <div class="tarjeta-recambio" style="position:relative; background:#fff; border-radius:12px; border:1px solid #eee; overflow:hidden; display:flex; flex-direction:column; transition:0.3s; ${estiloTarjeta} ${p.destacado && !agotado ? 'border:2px solid #e1b12c; box-shadow:0 8px 20px rgba(225,177,44,0.15); transform:translateY(-3px);' : 'box-shadow:0 4px 10px rgba(0,0,0,0.03);'}">
-                ${cartelAgotado}
-                ${p.destacado && !agotado ? '<div style="position:absolute;top:12px;right:12px;background:#e1b12c;color:white;padding:5px 10px;border-radius:6px;font-size:0.7em;font-weight:800;z-index:10;">⭐ RECOMENDADO</div>' : ''}
-                <div onclick="abrirModal('${p.referencia}')" style="cursor:pointer; height:210px; background:#f8f9fa; display:flex; align-items:center; justify-content:center; padding:20px; border-bottom:1px solid #f1f2f6;">
-                    <img src="${p.foto_url || 'https://via.placeholder.com/300'}" style="max-width:100%; max-height:100%; object-fit:contain; mix-blend-mode:multiply; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <div class="tarjeta-recambio-limpia">
+                ${p.destacado && !agotado ? '<span class="etiqueta-recomendado">⭐ RECOMENDADO</span>' : ''}
+                
+                <div class="zona-foto-tarjeta" onclick="abrirModal('${p.referencia}')">
+                    <img src="${p.foto_url || 'https://via.placeholder.com/300'}" alt="${p.titulo || 'Pieza'}">
                 </div>
-                <div style="padding:20px; flex-grow:1; display:flex; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <span style="background:${p.estado === 'Nuevo' ? '#e3fcf7' : '#f1f2f6'}; color:${p.estado === 'Nuevo' ? '#00b894' : '#576574'}; padding:4px 8px; border-radius:4px; font-size:0.75em; font-weight:bold;">${p.estado === 'Nuevo' ? 'NUEVO' : 'REVISADO'}</span>
-                        
-                        <!-- AQUÍ ESTÁ EL CÓDIGO RECUPERADO PARA CORTAR LAS REFERENCIAS LARGAS -->
-                        <span title="Ref: ${p.referencia}" style="font-size:0.9em; color:#576574; background:#f1f2f6; padding:3px 6px; border-radius:4px; font-family:monospace; font-weight:bold; max-width:130px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:bottom;">Ref: ${p.referencia}</span>
+                
+                <div class="zona-info-tarjeta">
+                    <div class="fila-estado-ref">
+                        <span class="etiqueta-estado">${p.estado === 'Nuevo' ? 'NUEVO' : 'REVISADO'}</span>
+                        <span class="etiqueta-ref" title="Ref: ${p.referencia}">Ref: ${p.referencia}</span>
                     </div>
                     
-                    <h3 onclick="abrirModal('${p.referencia}')" style="cursor:pointer; margin:0 0 8px 0; font-size:1.15em; color:#2d3436; line-height:1.3;">${p.titulo || 'Pieza sin título'}</h3>
-                    <p style="margin:0 0 15px 0; font-size:0.85em; color:#636e72;">Marca: <strong style="color:#2d3436;">${p.marca || 'Otras'}</strong></p>
+                    <h3 onclick="abrirModal('${p.referencia}')">${p.titulo || 'Pieza sin título'}</h3>
                     
-                    <!-- AQUÍ ESTÁ EL CÓDIGO RECUPERADO DEL COCHE COMPATIBLE -->
-                    ${p.compatible_con ? `<p style="font-size:0.8em; color:#636e72; margin-top:-5px; margin-bottom:15px; background:#f1f2f6; padding:8px; border-radius:6px;">🚗 Válido para: <b style="color:#2d3436;">${p.compatible_con}</b></p>` : ''}
-                    
-                    <div style="margin-top:auto; padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                        ${precioHtml}
+                    <div class="zona-precio-tarjeta">
+                        ${p.precio_antiguo ? `<span class="precio-tachado">${p.precio_antiguo}</span>` : ''}
+                        <div class="fila-precio-final">
+                            <span class="precio-actual">${p.precio || 'Consultar'}</span>
+                            ${p.precio_antiguo ? `<span class="etiqueta-oferta">OFERTA</span>` : ''}
+                        </div>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:15px; position:relative; z-index:25;">
-                        ${btnAñadir}
-                        <button id="btn-fav-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="${esFavorito ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:45px; border-radius:6px; cursor:pointer; font-size:1.2em; transition: 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Guardar en favoritos">${esFavorito ? '❤️' : '🤍'}</button>
-                        <button onclick="compartirPieza('${p.referencia}', event)" style="background:#f1f2f6; border:none; width:45px; border-radius:6px; cursor:pointer; font-size:1.2em; transition: 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Copiar enlace de esta pieza">🔗</button>
+                    
+                    <div class="zona-boton-tarjeta">
+                        ${agotado 
+                            ? `<button disabled class="btn-agotado-tarjeta">❌ Sin Stock</button>` 
+                            : `<button onclick="añadirAlCarrito('${p.referencia}', event)" class="btn-añadir-tarjeta">🛒 Añadir</button>`
+                        }
                     </div>
                 </div>
-            </div>`;
+            </div>
+        `;
     });
     
     contenedor.innerHTML = html || '<div style="width:100%; text-align:center; padding:60px;"><span style="font-size:3em;">🕵️‍♂️</span><h3 style="color:#636e72; margin-top:10px;">No encontramos piezas con esos filtros</h3></div>';

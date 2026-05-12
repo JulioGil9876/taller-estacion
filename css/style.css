@@ -184,101 +184,427 @@ border: 1px solid #eee; }
 .pie-pedido { background: #f8f9fa;
 padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
 
-
 /* ==========================================
-   📱 MÓVIL TOTAL UNIFICADO (CHAPA Y PINTURA FINA)
+   🖥️ ORDENADOR / PC: DISEÑO PREMIUM (Las nuevas tarjetas)
+   ========================================== */
+
+/* La Cuadrícula de Escritorio */
+#almacen-piezas, .grid-recambios { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Se adapta automático */
+    gap: 25px; 
+    padding: 20px 0; 
+}
+
+/* La Tarjeta Base de PC */
+.tarjeta-recambio-limpia {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Efecto al pasar el ratón (Se levanta y da sombra) */
+.tarjeta-recambio-limpia:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    border-color: #d1d8dd;
+    z-index: 2;
+}
+
+/* Etiqueta Recomendado (Arriba a la derecha) */
+.etiqueta-recomendado {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #f39c12;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75em;
+    font-weight: 800;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(243, 156, 18, 0.2);
+}
+
+/* Zona de Imagen PC */
+.zona-foto-tarjeta {
+    height: 200px; /* Foto grande para PC */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #f1f2f6;
+    cursor: pointer;
+}
+.zona-foto-tarjeta img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    mix-blend-mode: multiply; /* Quita fondos blancos de las fotos si el fondo es grisáceo */
+}
+.zona-foto-tarjeta:hover img {
+    transform: scale(1.05); /* Pequeño zoom al pasar el ratón */
+}
+
+/* Zona Información Inferior PC */
+.zona-info-tarjeta {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Estado y Ref */
+.fila-estado-ref {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.etiqueta-estado {
+    background: #111827;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.etiqueta-ref {
+    font-size: 0.85em;
+    color: #7f8c8d;
+    font-family: monospace;
+    background: #f1f2f6;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+/* Título PC */
+.zona-info-tarjeta h3 {
+    font-size: 1.15em;
+    color: #2c3e50;
+    line-height: 1.4;
+    margin: 0 0 15px 0;
+    cursor: pointer;
+    font-weight: 700;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Corta a 2 líneas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.8em; /* Altura fija anti-descuadres */
+}
+
+/* Precios PC */
+.zona-precio-tarjeta {
+    margin-top: auto; /* Se empuja hacia abajo */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.precio-tachado {
+    font-size: 0.9em;
+    color: #a4b0be;
+    text-decoration: line-through;
+    margin-bottom: 5px;
+}
+.fila-precio-final {
+    display: flex;
+    align-items: center;
+}
+.precio-actual {
+    font-size: 1.8em;
+    font-weight: 900;
+    color: #e74c3c;
+    line-height: 1;
+}
+.etiqueta-oferta {
+    background: #e74c3c;
+    color: white;
+    font-size: 0.7em;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+/* Botón Añadir PC */
+.zona-boton-tarjeta {
+    margin-top: 20px;
+}
+.btn-añadir-tarjeta {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    background: transparent;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-añadir-tarjeta:hover {
+    background: #e74c3c;
+    color: white;
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+}
+.btn-agotado-tarjeta {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    background: #ecf0f1;
+    color: #95a5a6;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: not-allowed;
+}
+/* ==========================================
+   📱 MÓVIL: ESTILO PCCOMPONENTES (Anti-Sabotaje JS)
    ========================================== */
 @media (max-width: 768px) {
     
-    /* --- 1. LA CABECERA (Desatascada y en 1 línea) --- */
-    .cabecera {
-        flex-direction: row !important; 
-        padding: 10px 5px !important; 
-        flex-wrap: nowrap !important;
-    }
-    
-    /* El logo prohibido que se rompa en 2 líneas */
-    .logo h2 { 
-        font-size: 1.1em !important; 
-        white-space: nowrap !important; 
-        margin: 0 !important;
-    }
-    
-    .menu {
-        gap: 8px !important;
-        flex-wrap: nowrap !important;
-        justify-content: flex-end !important;
-        width: auto !important;
-        margin: 0 !important;
-    }
+    /* --- 1. CABECERA ALINEADA --- */
+    .cabecera { position: static !important; flex-direction: column !important; padding: 12px 10px !important; gap: 12px !important; }
+    .logo h2 { font-size: 1.4em !important; text-align: center !important; margin: 0 !important; }
+    .menu { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; width: 100% !important; gap: 10px !important; margin: 0 !important;}
+    .menu > * { font-size: 0.9em !important; padding: 5px !important; margin: 0 !important; }
+    .oculto-en-movil { display: none !important; }
 
-    /* 🔥 LA MAGIA: Esconde lo que no cabe en el móvil */
-    .oculto-en-movil {
-        display: none !important;
-    }
-
-    /* --- 2. LAS TARJETAS (Adiós efecto limusina) --- */
+    /* --- 2. GRID RÍGIDO --- */
     #almacen-piezas, .grid-recambios {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important; 
-        padding: 5px !important;
-        /* ESTO MATA EL ESTIRAMIENTO GIGANTE */
-        align-items: start !important; 
+        padding: 8px !important;
+        background-color: #f5f5f5 !important; 
+        align-items: stretch !important; /* Obliga a igualar alturas */
     }
 
+    /* --- 3. LA TARJETA (MOLDE INAMOVIBLE Y NEUTRALIZADO) --- */
     .tarjeta-recambio, .grid-recambios > div {
-        padding: 8px !important;
+        background-color: #ffffff !important;
+        border-radius: 6px !important; 
+        /* 🔥 NEUTRALIZAMOS EL JAVASCRIPT AQUÍ: */
+        border: 1px solid #e0e0e0 !important; 
+        box-shadow: none !important; 
+        transform: none !important; /* ¡Mata el salto hacia arriba de las recomendadas! */
+        padding: 0 !important; 
+        margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: flex-start !important; /* Quita el espacio en blanco del centro */
-        height: auto !important; /* Miden solo lo que necesitan */
+        height: auto !important; 
     }
 
-    /* Fotos compactas */
-    .grid-recambios > div img, .tarjeta-recambio img {
-        height: 80px !important; 
-        object-fit: contain !important;
+    /* 🔥 Ocultamos la pegatina amarilla de 'Recomendado' para evitar estorbos */
+    .tarjeta-recambio > div[style*="background:#e1b12c"], .grid-recambios > div > div[style*="background:#e1b12c"] {
+        display: none !important; 
+    }
+
+    /* --- 4. ZONA DE IMAGEN (Altura fija de 130px) --- */
+    .tarjeta-recambio > div[onclick*="abrirModal"]:first-of-type, .grid-recambios > div > div[onclick*="abrirModal"]:first-of-type {
+        height: 130px !important; 
+        min-height: 130px !important;
+        max-height: 130px !important;
+        padding: 10px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        background: #fff !important; border-bottom: 1px solid #f5f5f5 !important;
+    }
+    .tarjeta-recambio img, .grid-recambios > div img {
+        max-height: 100% !important; max-width: 100% !important; object-fit: contain !important;
+    }
+
+    /* --- 5. ZONA DE INFORMACIÓN --- */
+    .tarjeta-recambio > div:last-child, .grid-recambios > div > div:last-child {
+        padding: 10px !important; 
+        display: flex !important; flex-direction: column !important; 
+        flex-grow: 1 !important; /* Empuja el botón al fondo */
+        justify-content: space-between !important;
+    }
+
+    /* Fila Nuevo + Ref */
+    .tarjeta-recambio > div:last-child > div:first-child, .grid-recambios > div > div:last-child > div:first-child {
+        display: flex !important; justify-content: space-between !important; align-items: center !important; 
         margin-bottom: 8px !important;
-        margin-top: 0 !important;
+    }
+    /* Pegatina Nuevo/Revisado */
+    .tarjeta-recambio > div:last-child > div:first-child > span:first-child {
+        font-size: 10px !important; font-weight: bold !important; padding: 2px 5px !important; 
+        background: #fff !important; color: #333 !important; border: 1px solid #ccc !important; border-radius: 4px !important;
+    }
+    /* Referencia a la derecha */
+    .tarjeta-recambio span[title*="Ref:"] {
+        font-size: 10px !important; color: #999 !important; background: transparent !important; padding: 0 !important;
+        max-width: 55% !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; text-align: right !important;
     }
 
-    /* Textos y precio ajustados */
-    .grid-recambios > div h3, .tarjeta-recambio h3 {
-        font-size: 0.85em !important;
-        line-height: 1.2 !important;
-        margin-bottom: 5px !important;
+    /* TÍTULO (2 líneas exactas -> 36px) */
+    .tarjeta-recambio h3, .grid-recambios > div h3 {
+        font-size: 13px !important; line-height: 1.4 !important; color: #333 !important; font-weight: 500 !important;
+        height: 36px !important; margin: 0 0 10px 0 !important; 
+        display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important;
     }
-    
-    .grid-recambios > div .precio, .tarjeta-recambio .precio {
-        font-size: 1.1em !important;
-        margin-top: auto !important; /* Empuja el precio y los botones abajo limpiamente */
-        margin-bottom: 8px !important;
+    .tarjeta-recambio p { display: none !important; } /* Oculta descripciones extra */
+
+    /* --- 6. ZONA DE PRECIOS --- */
+    .tarjeta-recambio > div:last-child > div:nth-last-child(2) {
+        margin-top: auto !important; padding-top: 0 !important;
+        display: flex !important; flex-direction: column !important; justify-content: flex-end !important; align-items: flex-start !important;
+        min-height: 40px !important; /* Espacio exacto para viejo y nuevo precio */
+    }
+    /* Precio Antiguo Tachado */
+    .tarjeta-recambio div[style*="flex-direction:column"] > span[style*="line-through"] {
+        font-size: 11px !important; color: #999 !important; line-height: 1 !important; margin-bottom: 2px !important;
+    }
+    /* Precio Final Rojo */
+    .tarjeta-recambio div[style*="margin-top:auto"] span[style*="font-weight:900"] {
+        font-size: 18px !important; font-weight: bold !important; color: #d63031 !important; 
+        display: flex !important; align-items: center !important;
+    }
+    /* Pegatina OFERTA controlada */
+    .tarjeta-recambio div[style*="margin-top:auto"] span[style*="background:#ff7675"] {
+        font-size: 10px !important; padding: 2px 4px !important; border-radius: 4px !important; background: #d63031 !important; color: white !important; 
+        margin-left: 6px !important; border: none !important; line-height: 1 !important;
     }
 
-    /* Botones de Añadir más pequeñitos */
-    .grid-recambios > div button, .tarjeta-recambio button {
-        padding: 6px !important;
-        font-size: 0.8em !important;
-        min-height: 32px !important;
+    /* --- 7. BOTÓN AÑADIR --- */
+    .tarjeta-recambio > div:last-child > div:last-child { 
+        margin-top: 10px !important; width: 100% !important; display: flex !important; gap: 0 !important; 
+    }
+    .tarjeta-recambio button:not(.btn-rojo) { display: none !important; }
+    .tarjeta-recambio button.btn-rojo {
+        width: 100% !important; padding: 8px !important; font-size: 14px !important; font-weight: bold !important;
+        background: #fff !important; color: #d63031 !important; border: 1px solid #d63031 !important; border-radius: 4px !important; 
     }
 
-    /* --- 3. AJUSTES GENERALES DEL MÓVIL --- */
-    input, select, textarea { font-size: 16px !important; }
-    body, html { overflow-x: hidden !important; }
+    /* --- 8. BUSCADOR --- */
+    .controles-superiores { flex-direction: column !important; gap: 10px !important; }
+    .controles-superiores input, .controles-superiores select { width: 100% !important; padding: 12px !important; border-radius: 6px !important; border: 1px solid #ddd !important; }
+}
+/* ==========================================
+   📱 MÓVIL: PLANTILLA DE HIERRO V2 (PCCOMPONENTES PURO)
+   ========================================== */
+@media (max-width: 768px) {
     
-    .controles-superiores { flex-direction: column !important; align-items: stretch !important; }
-    .controles-superiores input, .controles-superiores select {
-        width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
-        padding: 8px !important; min-height: 40px !important;
+    /* 1. CABECERA ALINEADA Y CENTRADA */
+    .cabecera { position: static !important; flex-direction: column !important; padding: 12px 10px !important; gap: 12px !important; }
+    .logo h2 { font-size: 22px !important; text-align: center !important; margin: 0 !important; }
+    .menu { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; width: 100% !important; gap: 15px !important; margin: 0 !important; }
+    .menu > * { font-size: 14px !important; padding: 0 !important; margin: 0 !important; }
+    .oculto-en-movil { display: none !important; }
+
+    /* 2. GRID MATEMÁTICO */
+    #almacen-piezas, .grid-recambios {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important; 
+        padding: 8px !important;
+        background-color: #f5f6fa !important; 
+        align-items: stretch !important; 
     }
-    
-    .hero { padding: 40px 15px !important; }
-    .hero h1 { font-size: 1.6em !important; word-break: break-word !important; }
-    .hero p { font-size: 0.95em !important; }
-    
-    .modal-box, .modal-auth-content {
-        width: 95% !important; padding: 20px 15px !important;
-        margin: 10px auto !important; max-height: 90vh !important; overflow-y: auto !important;
+
+    /* 3. LA TARJETA (El Molde Inamovible) */
+    .tarjeta-recambio-limpia {
+        background-color: #ffffff !important;
+        border-radius: 6px !important; 
+        border: 1px solid #e1e8ed !important;
+        padding: 0 !important; 
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+        height: 100% !important; 
+        overflow: hidden !important; 
     }
+
+    /* Ocultamos el Recomendado para que no estorbe (Si quieres encenderlo luego, dime) */
+    .etiqueta-recomendado { display: none !important; }
+
+    /* 4. ZONA DE IMAGEN (130px EXACTOS) */
+    .zona-foto-tarjeta {
+        height: 130px !important; 
+        min-height: 130px !important;
+        max-height: 130px !important;
+        padding: 10px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+    .zona-foto-tarjeta img {
+        max-height: 100px !important; max-width: 100% !important; object-fit: contain !important;
+    }
+
+    /* 5. ZONA DE INFORMACIÓN INFERIOR */
+    .zona-info-tarjeta {
+        padding: 10px !important; 
+        display: flex !important; flex-direction: column !important; justify-content: space-between !important;
+        flex-grow: 1 !important; box-sizing: border-box !important;
+    }
+
+    /* Fila Nuevo + Ref (16px exactos) */
+    .fila-estado-ref {
+        display: flex !important; justify-content: space-between !important; align-items: center !important; 
+        height: 16px !important; min-height: 16px !important; margin-bottom: 6px !important; overflow: hidden !important;
+    }
+    .etiqueta-estado {
+        font-size: 9px !important; font-weight: 800 !important; padding: 2px 4px !important; 
+        background: #111827 !important; color: white !important; border-radius: 3px !important; line-height: 1 !important;
+    }
+    .etiqueta-ref {
+        font-size: 10px !important; color: #888 !important; max-width: 60% !important; 
+        white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; text-align: right !important;
+    }
+
+    /* TÍTULO (36px exactos -> 2 líneas de texto) */
+    .zona-info-tarjeta h3 {
+        font-size: 12px !important; line-height: 1.5 !important; color: #222 !important; font-weight: 400 !important;
+        height: 36px !important; min-height: 36px !important; max-height: 36px !important; 
+        margin: 0 0 8px 0 !important; 
+        display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important;
+    }
+
+    /* 6. ZONA DE PRECIOS (34px exactos) */
+    .zona-precio-tarjeta {
+        margin-top: auto !important; 
+        display: flex !important; flex-direction: column !important; justify-content: flex-end !important; align-items: flex-start !important;
+        height: 34px !important; min-height: 34px !important; max-height: 34px !important; overflow: hidden !important;
+    }
+    .precio-tachado {
+        font-size: 11px !important; color: #888 !important; text-decoration: line-through !important; line-height: 1 !important; margin-bottom: 2px !important;
+    }
+    .fila-precio-final {
+        display: flex !important; align-items: center !important;
+    }
+    .precio-actual {
+        font-size: 16px !important; font-weight: 800 !important; color: #d63031 !important; line-height: 1 !important;
+    }
+    .etiqueta-oferta {
+        font-size: 9px !important; padding: 2px 4px !important; border-radius: 3px !important; background: #e74c3c !important; color: white !important; 
+        margin-left: 6px !important; height: 13px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important;
+    }
+
+    /* 7. BOTÓN AÑADIR (32px exactos) */
+    .zona-boton-tarjeta { 
+        margin-top: 8px !important; width: 100% !important; 
+        height: 32px !important; min-height: 32px !important; max-height: 32px !important;
+    }
+    .btn-añadir-tarjeta, .btn-agotado-tarjeta {
+        width: 100% !important; height: 100% !important; padding: 0 !important; font-size: 13px !important; border-radius: 4px !important; font-weight: 700 !important; display: flex !important; justify-content: center !important; align-items: center !important;
+    }
+    .btn-añadir-tarjeta {
+        background: #fff !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;
+    }
+    .btn-agotado-tarjeta {
+        background: #e5e7eb !important; color: #9ca3af !important; border: 1px solid #d1d5db !important;
+    }
+
+    /* 8. BUSCADOR Y FILTROS */
+    .controles-superiores { flex-direction: column !important; gap: 10px !important; }
+    .controles-superiores input, .controles-superiores select { width: 100% !important; padding: 12px !important; border-radius: 6px !important; border: 1px solid #ddd !important; }
 }
