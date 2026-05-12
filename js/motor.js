@@ -751,13 +751,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
+    // 1. EL DETECTOR DE CAMBIO DE CONTRASEÑA
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
-        if (event === 'SIGNED_IN' && !sessionActiva) {
+        if (event === 'PASSWORD_RECOVERY') {
+            console.log("¡Modo recuperación activado!");
+            mostrarVentanaNuevaPass();
+        } else if (event === 'SIGNED_IN' && !sessionActiva) {
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
             window.location.reload();
         }
     });
+
+// 2. LA VENTANA BONITA PARA METER LA CLAVE NUEVA
+window.mostrarVentanaNuevaPass = function() {
+    const modal = document.createElement('div');
+    modal.id = 'modal-cambio-pass';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+    
+    modal.innerHTML = `
+        <div style="background:white; padding:40px; border-radius:15px; text-align:center; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size: 3em; margin-bottom: 10px;">🔐</div>
+            <h2 style="color:#2c3e50; margin-top:0; margin-bottom:10px;">Nueva Contraseña</h2>
+            <p style="color:#7f8c8d; margin-bottom:25px; font-size:0.95em;">Escribe tu nueva llave de acceso para el taller.</p>
+            
+            <input type="password" id="input-nueva-pass" placeholder="Mínimo 6 caracteres" style="width:100%; padding:15px; border:2px solid #eee; border-radius:8px; font-size:1.1em; margin-bottom:20px; box-sizing:border-box; outline:none; text-align:center;">
+            
+            <button id="btn-guardar-pass" onclick="ejecutarCambioPass()" style="width:100%; padding:15px; background:#27ae60; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1em; cursor:pointer; transition:0.2s;">Guardar Contraseña</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+// 3. LA ORDEN AL MOTOR PARA CAMBIARLA DE VERDAD
+window.ejecutarCambioPass = async function() {
+    const nueva = document.getElementById('input-nueva-pass').value;
+    if (nueva.length < 6) return mostrarNotificacionFlotante("⚠️ Debe tener al menos 6 caracteres", "orange");
+    
+    const btn = document.getElementById('btn-guardar-pass');
+    btn.innerText = "Guardando... ⏳";
+    btn.disabled = true;
+
+    // Aquí Supabase graba a fuego la nueva contraseña
+    const { error } = await clienteSupabase.auth.updateUser({ password: nueva });
+
+    if (error) {
+        mostrarNotificacionFlotante("❌ Error: " + error.message, "#e74c3c");
+        btn.innerText = "Guardar Contraseña";
+        btn.disabled = false;
+    } else {
+        mostrarNotificacionFlotante("✅ ¡Contraseña actualizada con éxito!", "#27ae60");
+        setTimeout(() => {
+            document.getElementById('modal-cambio-pass').remove();
+            window.location.href = 'perfil.html'; // Lo mandamos al panel
+        }, 1500);
+    }
+};
 
     const inputPass = document.getElementById('pass-login');
     if(inputPass) {
