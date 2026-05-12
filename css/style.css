@@ -189,111 +189,96 @@ padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
    📱 MÓVIL TOTAL UNIFICADO (CHAPA Y PINTURA FINA)
    ========================================== */
 @media (max-width: 768px) {
-    /* 1. Cabecera más fina y en línea (Avería 1 solucionada) */
+    
+    /* --- 1. LA CABECERA (Desatascada y en 1 línea) --- */
     .cabecera {
-        flex-direction: row !important; /* Mantiene logo y menú en línea */
-        padding: 10px 15px !important; /* Más pequeño y pegado */
-        justify-content: space-between !important;
-        align-items: center !important;
+        flex-direction: row !important; 
+        padding: 10px 5px !important; 
+        flex-wrap: nowrap !important;
     }
-    .logo h2 { font-size: 1.3em !important; }
-
-    /* Menú y carrito hacia la derecha, sin apilarse feo */
+    
+    /* El logo prohibido que se rompa en 2 líneas */
+    .logo h2 { 
+        font-size: 1.1em !important; 
+        white-space: nowrap !important; 
+        margin: 0 !important;
+    }
+    
     .menu {
-        width: auto !important;
-        display: flex !important;
-        flex-direction: row !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
         justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 12px !important;
+        width: auto !important;
         margin: 0 !important;
     }
 
-    /* Textos irrompibles para que no se abollen al girar el móvil (Avería 3 solucionada) */
-    .menu a, .menu span, .menu button {
-        font-size: 0.85em !important;
-        padding: 5px !important;
-        margin: 0 !important;
-        white-space: nowrap !important; /* Soldadura fuerte, prohibido bajar de línea */
+    /* 🔥 LA MAGIA: Esconde lo que no cabe en el móvil */
+    .oculto-en-movil {
+        display: none !important;
     }
 
-    /* 2. Grid perfecto de 2 piezas (Avería 2 solucionada) */
+    /* --- 2. LAS TARJETAS (Adiós efecto limusina) --- */
     #almacen-piezas, .grid-recambios {
         display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important; /* Dos fijas siempre */
-        gap: 10px !important; 
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important; 
         padding: 5px !important;
+        /* ESTO MATA EL ESTIRAMIENTO GIGANTE */
+        align-items: start !important; 
     }
 
     .tarjeta-recambio, .grid-recambios > div {
-        padding: 10px !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.04) !important;
+        padding: 8px !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-between !important;
+        justify-content: flex-start !important; /* Quita el espacio en blanco del centro */
+        height: auto !important; /* Miden solo lo que necesitan */
     }
 
+    /* Fotos compactas */
     .grid-recambios > div img, .tarjeta-recambio img {
-        height: 100px !important;
-        width: 100% !important;
+        height: 80px !important; 
         object-fit: contain !important;
+        margin-bottom: 8px !important;
+        margin-top: 0 !important;
+    }
+
+    /* Textos y precio ajustados */
+    .grid-recambios > div h3, .tarjeta-recambio h3 {
+        font-size: 0.85em !important;
+        line-height: 1.2 !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .grid-recambios > div .precio, .tarjeta-recambio .precio {
+        font-size: 1.1em !important;
+        margin-top: auto !important; /* Empuja el precio y los botones abajo limpiamente */
         margin-bottom: 8px !important;
     }
 
-    .grid-recambios > div h3, .tarjeta-recambio h3 {
-        font-size: 0.9em !important;
-        margin-bottom: 5px !important;
-        line-height: 1.2 !important;
+    /* Botones de Añadir más pequeñitos */
+    .grid-recambios > div button, .tarjeta-recambio button {
+        padding: 6px !important;
+        font-size: 0.8em !important;
+        min-height: 32px !important;
     }
 
-    .grid-recambios > div .precio, .tarjeta-recambio .precio {
-        font-size: 1.05em !important;
-        font-weight: 800 !important;
-    }
-
-    /* 3. Evitar que el zoom de Apple rompa la web */
-    input, select, textarea {
-        font-size: 16px !important;
-    }
-
-    /* 4. Filtros compactos y ajustados */
-    .controles-superiores {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    .controles-superiores input, 
-    .controles-superiores select {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        padding: 8px !important;
-        min-height: 40px !important;
-    }
-
-    /* 5. Ajustes de Hero (Inicio) más recogidos */
-    .hero { padding: 40px 15px !important; }
-    .hero h1 { font-size: 1.8em !important; word-break: break-word !important; }
-    .hero p { font-size: 1em !important; }
-
-    /* 6. Evitar scroll lateral indeseado */
-    body, html {
-        overflow-x: hidden !important;
-    }
-
-    /* Modales adaptados al pulgar */
-    .modal-box, .modal-auth-content {
-        width: 95% !important;
-        padding: 20px 15px !important;
-        margin: 10px auto !important;
-        max-height: 90vh !important;
-        overflow-y: auto !important;
+    /* --- 3. AJUSTES GENERALES DEL MÓVIL --- */
+    input, select, textarea { font-size: 16px !important; }
+    body, html { overflow-x: hidden !important; }
+    
+    .controles-superiores { flex-direction: column !important; align-items: stretch !important; }
+    .controles-superiores input, .controles-superiores select {
+        width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+        padding: 8px !important; min-height: 40px !important;
     }
     
-    .sidebar-filtros { 
-        position: relative; 
-        top: 0;
-        max-height: none; 
-        margin-bottom: 20px; 
+    .hero { padding: 40px 15px !important; }
+    .hero h1 { font-size: 1.6em !important; word-break: break-word !important; }
+    .hero p { font-size: 0.95em !important; }
+    
+    .modal-box, .modal-auth-content {
+        width: 95% !important; padding: 20px 15px !important;
+        margin: 10px auto !important; max-height: 90vh !important; overflow-y: auto !important;
     }
 }
