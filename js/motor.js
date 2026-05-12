@@ -751,12 +751,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // 1. EL DETECTOR DE CAMBIO DE CONTRASEÑA
+    // 1. EL DETECTOR DE CAMBIO DE CONTRASEÑA (VERSIÓN BLINDADA)
+    
+    // Fusible manual: Si la URL del navegador trae el código de recuperación, saca la ventana sí o sí.
+    if (window.location.hash.includes('type=recovery')) {
+        setTimeout(() => mostrarVentanaNuevaPass(), 500); 
+    }
+
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
         if (event === 'PASSWORD_RECOVERY') {
-            console.log("¡Modo recuperación activado!");
             mostrarVentanaNuevaPass();
-        } else if (event === 'SIGNED_IN' && !sessionActiva) {
+        } else if (event === 'SIGNED_IN' && !sessionActiva && !window.location.hash.includes('type=recovery')) {
+            // Solo recarga la web si NO venimos de recuperar contraseña
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
             window.location.reload();
@@ -765,6 +771,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 2. LA VENTANA BONITA PARA METER LA CLAVE NUEVA
 window.mostrarVentanaNuevaPass = function() {
+    // Si ya existe la ventana, no la creamos 2 veces
+    if(document.getElementById('modal-cambio-pass')) return;
+
     const modal = document.createElement('div');
     modal.id = 'modal-cambio-pass';
     modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
@@ -801,9 +810,11 @@ window.ejecutarCambioPass = async function() {
         btn.disabled = false;
     } else {
         mostrarNotificacionFlotante("✅ ¡Contraseña actualizada con éxito!", "#27ae60");
+        // Limpiamos la URL para que no vuelva a saltar si refrescamos
+        window.history.replaceState(null, null, window.location.pathname);
         setTimeout(() => {
             document.getElementById('modal-cambio-pass').remove();
-            window.location.href = 'perfil.html'; // Lo mandamos al panel
+            window.location.href = 'perfil.html'; 
         }, 1500);
     }
 };
