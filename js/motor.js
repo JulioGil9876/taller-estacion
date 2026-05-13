@@ -1,4 +1,4 @@
-s// ==========================================
+// ==========================================
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
