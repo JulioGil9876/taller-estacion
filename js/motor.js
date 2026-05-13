@@ -623,7 +623,9 @@ window.recuperarPass = async function() {
     if (!email) return mostrarMensajeAuth("⚠️ Escribe tu email arriba para enviar el enlace", "orange");
     const btn = document.getElementById('btn-accion-login'); const txtO = btn.innerText;
     btn.innerText = "Enviando... ✉️"; btn.disabled = true;
-    const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    const { data, error } = await clienteSupabase.auth.resetPasswordForEmail(email, {
+  redirectTo: 'https://juliogil9876.github.io/taller-estacion/'
+});
     error ? mostrarMensajeAuth("❌ " + error.message, "#ff7675") : mostrarMensajeAuth("✅ Revisa tu email para cambiar la clave", "#55efc4");
     btn.innerText = txtO; btn.disabled = false;
 }
