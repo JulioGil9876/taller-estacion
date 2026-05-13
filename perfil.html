@@ -1,29 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Panel Seguro | Taller La Estación</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .panel-grid { display: grid; grid-template-columns: 280px 1fr; gap: 30px; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .menu-perfil { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; border: 1px solid #eee; height: fit-content; }
-        .menu-perfil a { display: flex; align-items: center; gap: 10px; padding: 15px; color: #2c3e50; text-decoration: none; font-weight: bold; border-bottom: 1px solid #f1f2f6; transition: 0.3s; cursor: pointer; }
-        .menu-perfil a:hover { color: #e74c3c; background: #fdf2f2; border-radius: 8px; border-bottom-color: transparent; }
-        .contenido-perfil { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 40px; border: 1px solid #eee; min-height: 500px; }
-        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #eee; flex: 1; text-align: center; }
-        .stat-card h3 { font-size: 2em; color: #e74c3c; margin: 0; line-height: 1; }
-        @media (max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .menu-perfil {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border: 1px solid #eee;
+            height: fit-content;
+        }
+
+        .menu-perfil a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px solid #f1f2f6;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .menu-perfil a:hover {
+            color: #e74c3c;
+            background: #fdf2f2;
+            border-radius: 8px;
+            border-bottom-color: transparent;
+        }
+
+        .contenido-perfil {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            border: 1px solid #eee;
+            min-height: 500px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            color: #e74c3c;
+            margin: 0;
+            line-height: 1;
+        }
+
+        @media (max-width: 768px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <header class="cabecera">
         <div class="logo">
-            <h2 style="margin: 0;"><a href="index.html" style="text-decoration: none; color: inherit;">Taller <span style="color: #e74c3c;">La Estación</span></a></h2>
+            <h2 style="margin: 0;"><a href="index.html" style="text-decoration: none; color: inherit;">Taller <span
+                        style="color: #e74c3c;">La Estación</span></a></h2>
         </div>
         <nav class="menu">
-            <a href="index.html" style="font-weight: bold; color: #2c3e50; text-decoration: none;">🏠 Volver a Inicio</a>
+            <a href="index.html" style="font-weight: bold; color: #2c3e50; text-decoration: none;">🏠 Volver a
+                Inicio</a>
             <a href="recambios.html" style="font-weight: bold; color: #e74c3c; text-decoration: none;">📦 Catálogo</a>
         </nav>
     </header>
@@ -31,68 +95,95 @@
     <div class="panel-grid">
         <aside class="menu-perfil">
             <div style="text-align: center; margin-bottom: 30px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; margin: 0 auto 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">👤</div>
+                <div
+                    style="width: 80px; height: 80px; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; margin: 0 auto 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    👤</div>
                 <h3 style="color: #2c3e50; margin:0;">Mi Cuenta</h3>
-                <p id="texto-email-perfil" style="color: #7f8c8d; font-size: 0.85em; margin: 5px 0 0 0; word-break: break-all;">Cargando...</p>
+                <p id="texto-email-perfil"
+                    style="color: #7f8c8d; font-size: 0.85em; margin: 5px 0 0 0; word-break: break-all;">Cargando...</p>
             </div>
-            
+
             <a onclick="abrirPestanaPerfil('tab-resumen')">📊 Panel de Resumen</a>
             <a onclick="abrirPestanaPerfil('tab-pedidos')">📦 Historial de Pedidos</a>
             <a onclick="abrirPestanaPerfil('tab-garaje')">🚗 Mi Garaje</a>
             <a href="recambios.html?vista=favoritos">❤️ Mis Favoritos</a>
             <a onclick="abrirPestanaPerfil('tab-ajustes')" style="color: #aaa;">⚙️ Ajustes de Seguridad</a>
-            <a onclick="abrirPestanaPerfil('tab-peticiones')" id="link-admin-peticiones" style="background: #fffbe8; color: #d6a200; border-bottom: 1px solid #ffd32a; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">🔍 Ver Peticiones (Admin)</a>
-            <a onclick="abrirPestanaPerfil('tab-admin-pedidos')" id="link-admin-pedidos" style="background: #e8f4fd; color: #2980b9; border-bottom: 1px solid #3498db; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">📦 Gestión de Pedidos (Admin)</a>
-            <a onclick="abrirPestanaPerfil('tab-subir-piezas')" id="link-admin-piezas" style="background: #f4e8fd; color: #8e44ad; border-bottom: 1px solid #9b59b6; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">➕ Subir Pieza al Catálogo</a>
+            <a onclick="abrirPestanaPerfil('tab-peticiones')" id="link-admin-peticiones"
+                style="background: #fffbe8; color: #d6a200; border-bottom: 1px solid #ffd32a; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">🔍
+                Ver Peticiones (Admin)</a>
+            <a onclick="abrirPestanaPerfil('tab-admin-pedidos')" id="link-admin-pedidos"
+                style="background: #e8f4fd; color: #2980b9; border-bottom: 1px solid #3498db; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">📦
+                Gestión de Pedidos (Admin)</a>
+            <a onclick="abrirPestanaPerfil('tab-subir-piezas')" id="link-admin-piezas"
+                style="background: #f4e8fd; color: #8e44ad; border-bottom: 1px solid #9b59b6; display: none; cursor: pointer; padding: 10px; border-radius: 5px; margin-top: 5px;">➕
+                Subir Pieza al Catálogo</a>
             <br>
-            <button onclick="cerrarSesionSegura()" class="btn-rojo" style="width: 100%; padding: 12px; background: #fdf2f2; color: #e74c3c !important; border: 1px solid #fadbd8; box-shadow: none;">🚪 Salir de forma segura</button>
+            <button onclick="cerrarSesionSegura()" class="btn-rojo"
+                style="width: 100%; padding: 12px; background: #fdf2f2; color: #e74c3c !important; border: 1px solid #fadbd8; box-shadow: none;">🚪
+                Salir de forma segura</button>
         </aside>
 
         <main class="contenido-perfil">
-            
+
             <!-- Pestaña 1: Resumen -->
             <div id="tab-resumen" class="contenido-perfil-tab">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Panel de Control General</h2>
-                
-                <div style="background: #e3fcf7; padding: 20px; border-radius: 8px; border-left: 4px solid #00b894; margin-bottom: 30px;">
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Panel de Control General</h2>
+
+                <div
+                    style="background: #e3fcf7; padding: 20px; border-radius: 8px; border-left: 4px solid #00b894; margin-bottom: 30px;">
                     <h4 style="color: #00b894; margin-top: 0;">✅ Conexión Encriptada</h4>
-                    <p style="margin: 0; color: #2d3436; font-size: 0.9em;">Tus datos de pago y contraseñas están protegidos con los estándares de seguridad de Stripe y Supabase.</p>
+                    <p style="margin: 0; color: #2d3436; font-size: 0.9em;">Tus datos de pago y contraseñas están
+                        protegidos con los estándares de seguridad de Stripe y Supabase.</p>
                 </div>
 
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div class="stat-card">
                         <span style="font-size: 2em;">📦</span>
                         <h3>Pedidos</h3>
-                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;" onclick="abrirPestanaPerfil('tab-pedidos')">Ver historial completo</p>
+                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;"
+                            onclick="abrirPestanaPerfil('tab-pedidos')">Ver historial completo</p>
                     </div>
                     <div class="stat-card">
                         <span style="font-size: 2em;">🚗</span>
                         <h3>Garaje</h3>
-                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;" onclick="abrirPestanaPerfil('tab-garaje')">Gestionar mis coches</p>
+                        <p style="color: #7f8c8d; font-weight: bold; font-size: 0.9em; cursor: pointer; text-decoration: underline;"
+                            onclick="abrirPestanaPerfil('tab-garaje')">Gestionar mis coches</p>
                     </div>
                 </div>
             </div>
 
             <!-- Pestaña 2: Pedidos (AQUÍ ES DONDE SE CARGARÁN TUS TICKETS) -->
             <div id="tab-pedidos" class="contenido-perfil-tab" style="display: none;">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Historial de Pedidos</h2>
-                
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Historial de Pedidos</h2>
+
                 <div id="lista-mis-pedidos" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- Si no hay pedidos cargados por motor.js, sale esto por defecto -->
-                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
+                    <div
+                        style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #ccc;">
                         <span style="font-size: 3em; opacity: 0.5;">🧾</span>
-                        <p style="color: #7f8c8d; font-size: 1.1em; margin-top: 10px;">Aún no has realizado ninguna compra o estamos cargando el historial...</p>
-                        <a href="recambios.html" class="btn-rojo" style="margin-top: 15px; display: inline-block;">Ir al catálogo</a>
+                        <p style="color: #7f8c8d; font-size: 1.1em; margin-top: 10px;">Aún no has realizado ninguna
+                            compra o estamos cargando el historial...</p>
+                        <a href="recambios.html" class="btn-rojo" style="margin-top: 15px; display: inline-block;">Ir al
+                            catálogo</a>
                     </div>
                 </div>
             </div>
 
             <!-- Pestaña 3: Garaje -->
             <div id="tab-garaje" class="contenido-perfil-tab" style="display: none;">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Mi Garaje</h2>
-                <p style="color: #636e72;">Registra tu vehículo aquí y te mostraremos automáticamente solo las piezas que sean compatibles.</p>
-                <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #eee; margin-top: 20px;">
-                    <input type="text" id="input-coche" placeholder="Ej: SEAT León 1.9 TDI (2008)" style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; outline: none; margin-bottom: 15px;">
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Mi Garaje</h2>
+                <p style="color: #636e72;">Registra tu vehículo aquí y te mostraremos automáticamente solo las piezas
+                    que sean compatibles.</p>
+                <div
+                    style="background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #eee; margin-top: 20px;">
+                    <input type="text" id="input-coche" placeholder="Ej: SEAT León 1.9 TDI (2008)"
+                        style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; outline: none; margin-bottom: 15px;">
                     <button class="btn-rojo" onclick="guardarCoche()">💾 Guardar Vehículo</button>
                     <hr style="margin: 30px 0; border: 1px solid #eee;">
                     <h3>🚘 Mis Vehículos Guardados</h3>
@@ -102,86 +193,145 @@
                 </div>
             </div>
             <div id="tab-peticiones" class="contenido-perfil-tab" style="display: none;">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Radar de Peticiones</h2>
-                <p style="color: #636e72; margin-bottom: 20px;">Estas son las piezas que tus clientes no han encontrado y están esperando a que tú las localices.</p>
-                
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Radar de Peticiones</h2>
+                <p style="color: #636e72; margin-bottom: 20px;">Estas son las piezas que tus clientes no han encontrado
+                    y están esperando a que tú las localices.</p>
+
                 <div id="lista-peticiones-admin" style="display: flex; flex-direction: column; gap: 15px;">
                     <p style="text-align: center; color: #aaa;">Cargando peticiones...</p>
                 </div>
             </div>
             <div id="tab-admin-pedidos" class="contenido-perfil-tab" style="display: none;">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Gestión de Ventas y Envíos</h2>
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Gestión de Ventas y Envíos</h2>
                 <div id="lista-pedidos-global" style="display: flex; flex-direction: column; gap: 20px;">
                     <p style="text-align: center; color: #aaa;">Cargando expediciones...</p>
                 </div>
             </div>
             <div id="tab-subir-piezas" class="contenido-perfil-tab" style="display:none; animation: fadeIn 0.3s;">
-                <h2 style="color:#2c3e50; border-bottom:2px solid #f1f2f6; padding-bottom:10px; margin-bottom:30px;">📦 Añadir Nueva Pieza al Catálogo</h2>
-                <p style="color:#7f8c8d; margin-bottom:20px;">Rellena los datos para que la pieza aparezca instantáneamente en la tienda.</p>
-                
-                <div style="background:#f8f9fa; padding:25px; border-radius:10px; border:1px solid #ddd; max-width: 600px;">
+                <h2 style="color:#2c3e50; border-bottom:2px solid #f1f2f6; padding-bottom:10px; margin-bottom:30px;">📦
+                    Añadir Nueva Pieza al Catálogo</h2>
+                <p style="color:#7f8c8d; margin-bottom:20px;">Rellena los datos para que la pieza aparezca
+                    instantáneamente en la tienda.</p>
+
+                <div
+                    style="background:#f8f9fa; padding:25px; border-radius:10px; border:1px solid #ddd; max-width: 600px;">
                     <div style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
                         <div style="flex:1; min-width: 250px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Título de la pieza *</label>
-                            <input type="text" id="nueva-titulo" placeholder="Ej: Motor de arranque Bosch..." style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;" required>
+                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Título de
+                                la pieza *</label>
+                            <input type="text" id="nueva-titulo" placeholder="Ej: Motor de arranque Bosch..."
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;"
+                                required>
                         </div>
                         <div style="flex:1; min-width: 150px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Referencia *</label>
-                            <input type="text" id="nueva-referencia" placeholder="Ej: REF-12345" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;" required>
+                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Referencia
+                                *</label>
+                            <input type="text" id="nueva-referencia" placeholder="Ej: REF-12345"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;"
+                                required>
                         </div>
                     </div>
 
                     <div style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
                         <div style="flex:1; min-width: 150px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Marca</label>
-                            <input type="text" id="nueva-marca" placeholder="Ej: Audi" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                            <label
+                                style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Marca</label>
+                            <input type="text" id="nueva-marca" placeholder="Ej: Audi"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
                         </div>
                         <div style="flex:1; min-width: 150px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Coche Compatible</label>
-                            <input type="text" id="nueva-coche" placeholder="Ej: Audi A3 2005" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Coche
+                                Compatible</label>
+                            <input type="text" id="nueva-coche" placeholder="Ej: Audi A3 2005"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
                         </div>
                     </div>
 
                     <div style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
                         <div style="flex:1; min-width: 100px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Precio Final *</label>
-                            <input type="text" id="nueva-precio" placeholder="Ej: 45,00€" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;" required>
+                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Precio
+                                Final *</label>
+                            <input type="text" id="nueva-precio" placeholder="Ej: 45,00€"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;"
+                                required>
+                        </div>
+                        <div style="flex:1; min-width: 100px;">
+                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Precio
+                                Antiguo</label>
+                            <input type="text" id="nueva-precio-antiguo" placeholder="Ej: 60,00€"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
                         </div>
                         <div style="flex:1; min-width: 150px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Estado</label>
-                            <select id="nueva-estado" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                            <label
+                                style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Estado</label>
+                            <select id="nueva-estado"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
                                 <option value="Revisado">Revisado (Segunda mano)</option>
                                 <option value="Nuevo">Nuevo</option>
                             </select>
                         </div>
                         <div style="flex:1; min-width: 80px;">
-                            <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Stock</label>
-                            <input type="number" id="nueva-stock" value="1" min="0" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                            <label
+                                style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Stock</label>
+                            <input type="number" id="nueva-stock" value="1" min="0"
+                                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
                         </div>
                     </div>
 
-                    <div style="margin-bottom:20px;">
-                        <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">URL de la Foto principal</label>
-                        <input type="text" id="nueva-foto" placeholder="https://..." style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
-                        <small style="color:#7f8c8d;">Sube tu foto a un sitio como Imgur o Postimages y pega aquí el enlace directo.</small>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">URL de la Foto
+                            principal</label>
+                        <input type="text" id="nueva-foto" placeholder="https://..."
+                            style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                        <small style="color:#7f8c8d;">Enlace directo desde Supabase Storage.</small>
                     </div>
 
-                    <button id="btn-subir-bd" onclick="enviarPiezaNube()" style="background:#8e44ad; color:white; border:none; padding:12px 20px; font-size:1.1em; font-weight:bold; border-radius:6px; cursor:pointer; width:100%; transition:0.2s;">⬆️ Subir Pieza a la Tienda</button>
+                    <div style="margin-bottom:20px;">
+                        <label style="font-weight:bold; color:#2c3e50; display:block; margin-bottom:5px;">Galería extra
+                            de fotos</label>
+                        <input type="text" id="nueva-galeria" placeholder="https://foto2.jpg, https://foto3.jpg..."
+                            style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
+                        <small style="color:#7f8c8d;">Opcional: Si tienes más fotos, separa los enlaces por
+                            comas.</small>
+                    </div>
+
+                    <div style="margin-bottom:25px;">
+                        <label
+                            style="font-weight:bold; color:#ea580c; display:flex; align-items:center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="nueva-destacado" style="transform: scale(1.5);">
+                            ⭐ Marcar como Producto Destacado
+                        </label>
+                    </div>
+
+                    <button id="btn-subir-bd" onclick="enviarPiezaNube()"
+                        style="background:#8e44ad; color:white; border:none; padding:12px 20px; font-size:1.1em; font-weight:bold; border-radius:6px; cursor:pointer; width:100%; transition:0.2s;">⬆️
+                        Subir Pieza a la Tienda</button>
                 </div>
             </div>
             <!-- Pestaña 4: Ajustes -->
             <div id="tab-ajustes" class="contenido-perfil-tab" style="display: none;">
-                <h2 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">Ajustes de Seguridad</h2>
+                <h2
+                    style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 30px;">
+                    Ajustes de Seguridad</h2>
                 <div style="background: #fdf2f2; padding: 20px; border-radius: 8px; border: 1px solid #fadbd8;">
                     <h4 style="color: #e74c3c; margin-top: 0;">Cambiar Contraseña</h4>
-                    <p style="font-size: 0.9em; color: #7f8c8d;">Para cambiar tu contraseña, usaremos el mismo email seguro de tu cuenta.</p>
-                    
+                    <p style="font-size: 0.9em; color: #7f8c8d;">Para cambiar tu contraseña, usaremos el mismo email
+                        seguro de tu cuenta.</p>
+
                     <!-- Formulario de recuperación conectado al sistema -->
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <input type="email" id="email-login" placeholder="Tu email actual" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
-                        <button class="btn-rojo" id="btn-accion-login" onclick="recuperarPass()" style="background: #e74c3c; white-space: nowrap;">✉️ Solicitar Cambio</button>
+                        <input type="email" id="email-login" placeholder="Tu email actual"
+                            style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+                        <button class="btn-rojo" id="btn-accion-login" onclick="recuperarPass()"
+                            style="background: #e74c3c; white-space: nowrap;">✉️ Solicitar Cambio</button>
                     </div>
-                    <div id="mensaje-auth" style="display: none; margin-top: 10px; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.9em;"></div>
+                    <div id="mensaje-auth"
+                        style="display: none; margin-top: 10px; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.9em;">
+                    </div>
 
                 </div>
             </div>
@@ -193,4 +343,5 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/motor.js"></script>
 </body>
+
 </html>

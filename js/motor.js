@@ -212,6 +212,12 @@ function renderizarVista() {
 
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
+        
+        // ⚡ ¡LA NUEVA CONEXIÓN PARA LAS NOVEDADES!
+        if (criterioOrden === 'nuevo') {
+            return new Date(b.created_at) - new Date(a.created_at);
+        }
+        
         if (criterioOrden === 'barato') return limpia(a.precio) - limpia(b.precio);
         if (criterioOrden === 'caro') return limpia(b.precio) - limpia(a.precio);
         if (criterioOrden === 'nombre') return (a.titulo||'').localeCompare(b.titulo||'');
@@ -1445,9 +1451,12 @@ window.enviarPiezaNube = async function() {
     const marca = document.getElementById('nueva-marca').value.trim();
     const coche = document.getElementById('nueva-coche').value.trim();
     const precio = document.getElementById('nueva-precio').value.trim();
+    const precio_antiguo = document.getElementById('nueva-precio-antiguo').value.trim(); // NUEVO
     const estado = document.getElementById('nueva-estado').value;
     const stock = parseInt(document.getElementById('nueva-stock').value) || 1;
     const foto = document.getElementById('nueva-foto').value.trim();
+    const galeria = document.getElementById('nueva-galeria').value.trim(); // NUEVO
+    const destacado = document.getElementById('nueva-destacado').checked; // NUEVO
 
     if (!titulo || !referencia || !precio) {
         return mostrarNotificacionFlotante("⚠️ Título, Referencia y Precio son obligatorios.", "orange");
@@ -1465,10 +1474,13 @@ window.enviarPiezaNube = async function() {
         marca: marca,
         compatible_con: coche,
         precio: precio,
+        precio_antiguo: precio_antiguo || null, // Se manda si existe
         estado: estado,
         stock: stock,
         foto_url: foto || 'https://via.placeholder.com/300?text=Sin+Foto',
-        seccion: 'varios', // Por defecto a Varios
+        galeria: galeria || null, // Se manda si existe
+        destacado: destacado, // true o false
+        seccion: 'varios', 
         filtro: 'general'
     }]);
 
@@ -1477,14 +1489,18 @@ window.enviarPiezaNube = async function() {
 
     if (error) {
         console.error(error);
-        mostrarNotificacionFlotante("❌ Error al subir: La referencia podría estar repetida.", "#e74c3c");
+        mostrarNotificacionFlotante("❌ Error al subir: La referencia podría estar repetida o faltan columnas.", "#e74c3c");
     } else {
         mostrarNotificacionFlotante("✅ ¡Pieza subida al catálogo con éxito!", "#27ae60");
+        
         // Limpiamos el formulario para la siguiente
         document.getElementById('nueva-titulo').value = '';
         document.getElementById('nueva-referencia').value = '';
         document.getElementById('nueva-foto').value = '';
+        document.getElementById('nueva-precio-antiguo').value = '';
+        document.getElementById('nueva-galeria').value = '';
+        document.getElementById('nueva-destacado').checked = false;
         
-        cargarPiezasDesdeLaNube(); // Refrescamos el almacén invisible
+        cargarPiezasDesdeLaNube(); // Refrescamos el almacén
     }
 };
