@@ -1,4 +1,4 @@
-// ==========================================
+s// ==========================================
 // 1. CONEXIÓN AL SERVIDOR SUPABASE (NUBE)
 // ==========================================
 const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
@@ -627,11 +627,24 @@ window.cambiarModoAuth = () => {
 window.recuperarPass = async function() {
     const email = document.getElementById('email-login').value;
     if (!email) return mostrarMensajeAuth("⚠️ Escribe tu email arriba para enviar el enlace", "orange");
-    const btn = document.getElementById('btn-accion-login'); const txtO = btn.innerText;
+    
+    const btn = document.getElementById('btn-accion-login');
+    const txtO = btn.innerText;
     btn.innerText = "Enviando... ✉️"; btn.disabled = true;
-    const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-    error ? mostrarMensajeAuth("❌ " + error.message, "#ff7675") : mostrarMensajeAuth("✅ Revisa tu email para cambiar la clave", "#55efc4");
-    btn.innerText = txtO; btn.disabled = false;
+
+    // ⚡ LA PIEZA CLAVE: Forzamos la ruta completa para GitHub Pages
+    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
+
+    const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { 
+        redirectTo: rutaCompleta 
+    });
+    
+    error ?
+        mostrarMensajeAuth("❌ " + error.message, "#ff7675") : 
+        mostrarMensajeAuth("✅ Revisa tu email para cambiar la clave", "#55efc4");
+        
+    btn.innerText = txtO;
+    btn.disabled = false;
 }
 
 window.loginGoogle = async function() {
