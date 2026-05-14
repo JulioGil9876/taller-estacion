@@ -663,7 +663,15 @@ window.procesarAuth = async function() {
     if (res.error) {
         mostrarMensajeAuth("❌ " + res.error.message, "#ff7675");
         btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); btn.disabled = false;
-    } else {
+        
+        // ⚡ LA ANIMACIÓN Y BORRADO DE CONTRASEÑA
+        const inputPass = document.getElementById('pass-login');
+        if (inputPass) {
+            inputPass.value = ''; // Borra el texto
+            inputPass.classList.add('animacion-error'); // Tiembla
+            setTimeout(() => inputPass.classList.remove('animacion-error'), 400); // Se recarga
+        }
+    } else  {
         mostrarNotificacionFlotante(titulo === 'Iniciar Sesión' ? "¡Hola de nuevo! 👋" : "¡Bienvenida/o! 🌟", "#27ae60");
         setTimeout(() => { cerrarLogin(); btn.disabled = false; }, 1000);
     }
