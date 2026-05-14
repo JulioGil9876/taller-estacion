@@ -696,12 +696,34 @@ function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
     setTimeout(() => { toast.style.transform = 'translateY(20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
-window.cerrarSesionSegura = async () => {
-    if(confirm("¿Seguro que quieres cerrar la sesión?")) {
-        await clienteSupabase.auth.signOut(); 
-        window.location.href = 'index.html';
+window.cerrarSesionSegura = function() {
+    // ⚡ CREAMOS NUESTRA PROPIA BURBUJA DE TALLER
+    let modal = document.getElementById('modal-logout-custom');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-logout-custom';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+        modal.innerHTML = `
+            <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3); transition:0.2s;">
+                <div style="font-size: 3.5em; margin-bottom: 10px;">👋</div>
+                <h3 style="margin-top:0; color:#2c3e50; font-size:1.6em;">¿Te vas ya del taller?</h3>
+                <p style="color:#636e72; margin-bottom:25px; font-size: 1.05em;">¿Seguro que quieres cerrar la sesión? Tendrás que volver a usar tu llave para entrar.</p>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="document.getElementById('modal-logout-custom').style.display='none'" style="flex:1; padding:12px; border:none; background:#f1f2f6; color:#2d3436; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em;">Cancelar</button>
+                    <button onclick="ejecutarCierreSesion()" style="flex:1; padding:12px; border:none; background:#e74c3c; color:white; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em;">Sí, salir</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
-}
+    modal.style.display = 'flex';
+};
+
+window.ejecutarCierreSesion = async () => {
+    document.getElementById('modal-logout-custom').style.display = 'none';
+    await clienteSupabase.auth.signOut();
+    window.location.href = 'index.html'; // Te manda al inicio al salir
+};
 
 window.abrirPestanaPerfil = (id) => {
     document.querySelectorAll('.contenido-perfil-tab').forEach(t => t.style.display = 'none');
