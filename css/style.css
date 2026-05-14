@@ -114,7 +114,7 @@ top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdro
     transition: all 0.4s ease;
     border-top: 8px solid var(--rojo-motor); 
     animation: slideUp 0.3s ease-out; 
-    max-height: 85vh;
+    max-height: 95vh;
     overflow-y: auto; 
     box-sizing: border-box;
 }
@@ -625,4 +625,16 @@ padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
 .animacion-error {
     animation: temblor 0.4s ease;
     border: 2px solid #e74c3c !important;
+}
+/* 2. Ventana de Login: Altura perfecta y sin scroller */
+@media (min-width: 768px) {
+    .modal-auth-content {
+        padding: 10px 45px 40px 45px !important; /* 50px arriba para la llave */
+        max-width: 450px !important;
+        min-height: 520px !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important; /* Alinea desde arriba con el padding */
+    }
 }
