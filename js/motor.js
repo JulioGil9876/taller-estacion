@@ -850,7 +850,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    let modoRecuperacion = window.location.href.includes('type=recovery');
+
 
     // ⚡ DETECTOR ULTRA-SENSIBLE DE RECUPERACIÓN DE CONTRASEÑA
     // Comprobamos tanto la URL limpia como los fragmentos ocultos (#)
