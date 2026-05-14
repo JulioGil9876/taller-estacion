@@ -852,12 +852,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let modoRecuperacion = window.location.href.includes('type=recovery');
 
+    // ⚡ DETECTOR ULTRA-SENSIBLE DE RECUPERACIÓN DE CONTRASEÑA
+    // Comprobamos tanto la URL limpia como los fragmentos ocultos (#)
+    let modoRecuperacion = window.location.href.includes('type=recovery') || window.location.hash.includes('type=recovery');
+
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
-        console.log("Centralita Supabase dice:", event); 
+        console.log("📡 Evento de seguridad detectado:", event); 
         
+        // Si Supabase nos dice que es una recuperación, o lo vemos en la URL, abrimos la ventana
         if (event === 'PASSWORD_RECOVERY' || modoRecuperacion) {
+            console.log("🔑 Modo recuperación activado. Abriendo ventana...");
+            
+            // Forzamos que la variable sea true para que no se cierre
             modoRecuperacion = true; 
-            setTimeout(() => mostrarVentanaNuevaPass(), 300); 
+            
+            // Esperamos un pelín a que cargue bien la página y lanzamos el modal
+            setTimeout(() => {
+                if (typeof window.mostrarVentanaNuevaPass === "function") {
+                    window.mostrarVentanaNuevaPass();
+                }
+            }, 500); 
         } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
