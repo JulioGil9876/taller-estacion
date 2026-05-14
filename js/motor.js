@@ -81,17 +81,34 @@ function generarFiltrosDeMarca() {
     const contenedor = document.getElementById('contenedor-marcas-dinamicas');
     if (!contenedor) return;
     let marcas = [...new Set(inventarioNube.map(p => p.marca || 'Otras'))].filter(m => m);
-    let html = `<button class="btn-marca-filtro activo" onclick="filtrarMarca(this, 'todas')" style="padding:6px 12px; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.85em;">Todas</button>`;
-    marcas.forEach(m => html += `<button class="btn-marca-filtro" onclick="filtrarMarca(this, '${m}')" style="padding:6px 12px; background:#f0f0f0; color:#333; border:1px solid #ccc; border-radius:4px; cursor:pointer; font-size:0.85em;">${m}</button>`);
+    
+    // ⚡ AQUÍ CREAMOS EL BUSCADOR CON DESPLEGABLE (Datalist)
+    let html = `
+        <div style="position:relative; width:100%; margin-bottom: 10px;">
+            <input list="lista-marcas-filtro" id="input-buscar-marca" placeholder="🔍 Escribe o elige una marca..." onchange="filtrarMarca(null, this.value)" style="width:100%; padding:12px 15px; border-radius:8px; border:2px solid #eee; font-size:1em; outline:none; box-shadow:inset 0 2px 5px rgba(0,0,0,0.02); transition: 0.3s;" onfocus="this.style.borderColor='#e74c3c'" onblur="this.style.borderColor='#eee'">
+            <datalist id="lista-marcas-filtro">
+                <option value="todas">Mostrar todas las marcas</option>
+                ${marcas.map(m => `<option value="${m}">${m}</option>`).join('')}
+            </datalist>
+        </div>
+    `;
     contenedor.innerHTML = html;
 }
 
 window.filtrarMarca = (btn, marca) => {
+    // Si la marca no existe o es "todas", borramos el filtro
+    marcaActual = (marca === 'todas' || !marca) ? '' : marca;
+    
+    // Si hay botones antiguos los limpiamos (por si acaso)
     document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
     if(btn) { btn.style.background = '#2c3e50'; btn.style.color = 'white'; }
     
-    marcaActual = marca === 'todas' ? '' : marca;
-    if(document.getElementById('input-busqueda')) document.getElementById('input-busqueda').value = busquedaActual;
+    // Sincronizamos el buscador con la etiqueta que se haya pulsado
+    const inputBuscador = document.getElementById('input-buscar-marca');
+    if (inputBuscador && !btn) {
+        inputBuscador.value = marca === 'todas' ? '' : marca;
+    }
+    
     paginaActual = 1; 
     renderizarVista();
 }
