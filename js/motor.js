@@ -662,16 +662,18 @@ window.procesarAuth = async function() {
     let res = (titulo === 'Iniciar Sesión') ? await clienteSupabase.auth.signInWithPassword({ email, password: pass }) : await clienteSupabase.auth.signUp({ email, password: pass });
     if (res.error) {
         mostrarMensajeAuth("❌ " + res.error.message, "#ff7675");
-        btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); btn.disabled = false;
-        
-        // ⚡ LA ANIMACIÓN Y BORRADO DE CONTRASEÑA
+        btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); 
+        btn.disabled = false;
+
+        // ⚡ PIEZA NUEVA: BORRAR Y TEMBLAR
         const inputPass = document.getElementById('pass-login');
         if (inputPass) {
-            inputPass.value = ''; // Borra el texto
-            inputPass.classList.add('animacion-error'); // Tiembla
-            setTimeout(() => inputPass.classList.remove('animacion-error'), 400); // Se recarga
+            inputPass.value = ''; // Borra lo que han escrito
+            inputPass.classList.add('animacion-error'); // Hace que tiemble
+            // Quitamos la clase a los 400ms para que pueda volver a temblar si fallan otra vez
+            setTimeout(() => inputPass.classList.remove('animacion-error'), 400);
         }
-    } else  {
+    } else {
         mostrarNotificacionFlotante(titulo === 'Iniciar Sesión' ? "¡Hola de nuevo! 👋" : "¡Bienvenida/o! 🌟", "#27ae60");
         setTimeout(() => { cerrarLogin(); btn.disabled = false; }, 1000);
     }

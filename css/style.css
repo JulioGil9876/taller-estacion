@@ -614,3 +614,15 @@ padding: 15px 20px; border-top: 1px solid #eee; text-align: right; }
     .controles-superiores { flex-direction: column !important; gap: 10px !important; }
     .controles-superiores input, .controles-superiores select { width: 100% !important; padding: 12px !important; border-radius: 6px !important; border: 1px solid #ddd !important; }
 }
+@keyframes temblor {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+}
+
+.animacion-error {
+    animation: temblor 0.4s ease;
+    border: 2px solid #e74c3c !important;
+}
