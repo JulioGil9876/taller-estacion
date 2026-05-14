@@ -647,6 +647,58 @@ window.recuperarPass = async function() {
     btn.innerText = txtO;
     btn.disabled = false;
 }
+// ⚡ NUEVA VENTANA EXCLUSIVA PARA RECUPERAR CONTRASEÑA
+window.abrirRecuperarPass = function() {
+    // Cerramos la ventana de login normal para que no estorbe
+    const modalLogin = document.getElementById('modal-login');
+    if (modalLogin) modalLogin.style.display = 'none';
+
+    let modal = document.getElementById('modal-recuperar-custom');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-recuperar-custom';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+        modal.innerHTML = `
+            <div style="background:white; padding:40px; border-radius:20px; text-align:center; max-width:450px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3); position:relative;">
+                <span onclick="document.getElementById('modal-recuperar-custom').style.display='none'" style="position:absolute; top:15px; right:20px; font-size:1.8em; cursor:pointer; color:#7f8c8d;">&times;</span>
+                <div style="font-size: 3.5em; margin-bottom: 10px;">🆘</div>
+                <h2 style="margin-top:0; color:#2c3e50;">Recuperar Llave</h2>
+                <p style="color:#636e72; margin-bottom:25px; font-size: 1.05em; line-height: 1.4;">Escribe el correo electrónico asociado a la cuenta a la cual quieres restablecer la contraseña.</p>
+                <input type="email" id="input-email-recuperar" placeholder="tu@email.com" style="width:100%; padding:15px; border:2px solid #eee; border-radius:8px; font-size:1.1em; margin-bottom:20px; box-sizing:border-box; outline:none; text-align:center;">
+                <button id="btn-enviar-recuperacion" onclick="ejecutarRecuperacionExclusiva()" style="width:100%; padding:15px; background:#e74c3c; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1em; cursor:pointer; transition:0.2s;">Enviar enlace de recuperación ✉️</button>
+                <p id="mensaje-recuperacion" style="display:none; margin-top:15px; font-weight:bold; padding:10px; border-radius:8px; font-size:0.9em;"></p>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('input-email-recuperar').value = '';
+    document.getElementById('mensaje-recuperacion').style.display = 'none';
+    const btn = document.getElementById('btn-enviar-recuperacion');
+    btn.disabled = false; btn.innerText = 'Enviar enlace de recuperación ✉️'; btn.style.background = '#e74c3c';
+    modal.style.display = 'flex';
+};
+
+window.ejecutarRecuperacionExclusiva = async function() {
+    const email = document.getElementById('input-email-recuperar').value.trim();
+    const msg = document.getElementById('mensaje-recuperacion');
+    const btn = document.getElementById('btn-enviar-recuperacion');
+
+    if (!email || !email.includes('@')) {
+        msg.innerText = "⚠️ Por favor, escribe un email válido."; msg.style.color = "orange"; msg.style.background = "#fff3cd"; msg.style.display = "block"; return;
+    }
+
+    btn.innerText = "Enviando... ⏳"; btn.disabled = true;
+    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
+    const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: rutaCompleta });
+
+    if (error) {
+        msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c"; msg.style.background = "#fadbd8"; msg.style.display = "block";
+        btn.innerText = 'Intentar de nuevo'; btn.disabled = false;
+    } else {
+        msg.innerText = "✅ ¡Enlace enviado! Revisa tu email (o la carpeta de Spam)."; msg.style.color = "#27ae60"; msg.style.background = "#d4edda"; msg.style.display = "block";
+        btn.innerText = '¡Conseguido! 🎉'; btn.style.background = '#27ae60';
+    }
+};
 
 window.loginGoogle = async function() {
     const { error } = await clienteSupabase.auth.signInWithOAuth({ provider: 'google' });
