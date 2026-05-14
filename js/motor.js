@@ -90,7 +90,6 @@ window.filtrarMarca = (btn, marca) => {
     document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
     if(btn) { btn.style.background = '#2c3e50'; btn.style.color = 'white'; }
     
-    // Ahora usa su propia variable, ya no se mete en el input del buscador a lo bruto
     marcaActual = marca === 'todas' ? '' : marca;
     if(document.getElementById('input-busqueda')) document.getElementById('input-busqueda').value = busquedaActual;
     paginaActual = 1; 
@@ -125,7 +124,6 @@ function actualizarEtiquetasFiltros() {
     if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
     if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
     
-    // AQUÍ ESTÁ LA NUEVA ETIQUETA DE MARCA
     if (marcaActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('marca')" style="background:#3498db; color:white; border-color:#3498db;" title="Quitar filtro de marca">Marca: ${marcaActual.toUpperCase()} ✖</div>`;
     
     if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;" title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
@@ -192,6 +190,7 @@ function renderizarVista() {
     }
 
     const termino = busquedaActual.toLowerCase();
+    // VARIABLE SEGURA DESDE SUPABASE
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
     let filtradas = inventarioNube.filter(p => {
@@ -199,25 +198,19 @@ function renderizarVista() {
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
         
-        // NUEVA REGLA: Filtra por la marca seleccionada
         let m = (marcaActual === '') || (p.marca && p.marca.toLowerCase() === marcaActual.toLowerCase()); 
         
-        // Quitamos la marca del buscador de texto para no liar al cliente
         let textoBusqueda = ((p.titulo||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
         let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
         
-        return r && f && m && b && c; // Añadimos la "m"
+        return r && f && m && b && c; 
     });
 
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
         
-        // ⚡ ¡LA NUEVA CONEXIÓN PARA LAS NOVEDADES!
-        if (criterioOrden === 'nuevo') {
-            return new Date(b.created_at) - new Date(a.created_at);
-        }
-        
+        if (criterioOrden === 'nuevo') return new Date(b.created_at) - new Date(a.created_at);
         if (criterioOrden === 'barato') return limpia(a.precio) - limpia(b.precio);
         if (criterioOrden === 'caro') return limpia(b.precio) - limpia(a.precio);
         if (criterioOrden === 'nombre') return (a.titulo||'').localeCompare(b.titulo||'');
@@ -234,7 +227,9 @@ function renderizarVista() {
             ? `<div style="display:flex; flex-direction:column;"><span style="text-decoration:line-through;color:#a4b0be;font-size:0.85em;">${p.precio_antiguo}</span><span style="color:#e74c3c;font-weight:900;font-size:1.6em;line-height:1;">${p.precio || '0€'} <span style="background:#ff7675;color:white;padding:2px 5px;border-radius:4px;font-size:0.4em;vertical-align:middle;">OFERTA</span></span></div>` 
             : `<span style="font-weight:900;font-size:1.6em;color:#2d3436;">${p.precio || 'Consultar'}</span>`;
             
+        // PEGATINA DEL CORAZÓN (Limpia y a prueba de errores)
         let esFavorito = misFavoritos.includes(p.referencia);
+        let pegatinaFav = esFavorito ? '<span style="position:absolute; top:10px; left:10px; background:white; border-radius:50%; padding:4px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:10; font-size:1.2em;" title="Guardado en favoritos">❤️</span>' : '';
         
         let agotado = p.stock !== undefined && p.stock <= 0;
         let cartelAgotado = agotado ? '<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-10deg);background:rgba(231,76,60,0.95);color:white;padding:8px 20px;font-size:1.4em;font-weight:900;border:3px solid white;border-radius:8px;z-index:20;box-shadow:0 5px 15px rgba(0,0,0,0.3);letter-spacing:1px;white-space:nowrap;">AGOTADO</div>' : '';
@@ -242,8 +237,9 @@ function renderizarVista() {
         let estiloTarjeta = agotado ? 'opacity:0.75; filter:grayscale(80%);' : '';
 
         html += `
-            <div class="tarjeta-recambio-limpia">
-                ${p.destacado && !agotado ? '<span class="etiqueta-recomendado">⭐ RECOMENDADO</span>' : ''}
+            <div class="tarjeta-recambio-limpia" style="${estiloTarjeta} position:relative;">
+                ${pegatinaFav}
+                ${p.destacado && !agotado ? '<span class="etiqueta-recomendado" style="position:absolute; top:10px; right:10px; background:var(--naranja-accent); color:white; padding:4px 8px; border-radius:4px; font-size:0.7em; font-weight:bold; z-index:5;">⭐ RECOMENDADO</span>' : ''}
                 
                 <div class="zona-foto-tarjeta" onclick="abrirModal('${p.referencia}')">
                     <img src="${p.foto_url || 'https://via.placeholder.com/300'}" alt="${p.titulo || 'Pieza'}">
@@ -355,9 +351,6 @@ window.toggleFavorito = async (ref, e) => {
 // ==========================================
 // 6. SISTEMA DE MODAL (VENTANA DE DETALLES)
 // ==========================================
-// ==========================================
-// 6. SISTEMA DE MODAL (VENTANA DE DETALLES)
-// ==========================================
 window.abrirModal = (ref) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
@@ -435,12 +428,10 @@ window.añadirAlCarrito = (ref, e) => {
     const p = inventarioNube.find(item => item.referencia === ref);
     if (!p) return;
 
-    // 1. Comprobamos si está agotado
     if (p.stock !== undefined && p.stock <= 0) {
         return mostrarNotificacionFlotante("⚠️ Esta pieza está agotada", "#e74c3c");
     }
 
-    // 2. Comprobamos si el cliente intenta meter más de las que hay en la estantería
     let itemExistente = carrito.find(item => item.referencia === ref);
     let cantActual = itemExistente ? (itemExistente.cantidad || 1) : 0;
 
@@ -448,7 +439,6 @@ window.añadirAlCarrito = (ref, e) => {
         return mostrarNotificacionFlotante(`⚠️ Lo sentimos, solo nos quedan ${p.stock} en stock`, "#f39c12");
     }
 
-    // 3. Añadimos a la cesta
     if (itemExistente) {
         itemExistente.cantidad = cantActual + 1;
     } else {
@@ -467,7 +457,6 @@ function actualizarInterfazCarrito() {
     const contadores = document.querySelectorAll('#contador-carrito');
     const totalTxt = document.getElementById('total-precio-carrito');
 
-    // Sumamos la cantidad de piezas totales
     let totalArticulos = carrito.reduce((sum, item) => sum + (item.cantidad || 1), 0);
 
     if (carrito.length === 0) {
@@ -499,7 +488,6 @@ function actualizarInterfazCarrito() {
 }
 
 window.eliminarDelCarrito = (index) => { 
-    // Si hay más de 1, restamos. Si solo queda 1, borramos la fila.
     if (carrito[index].cantidad > 1) {
         carrito[index].cantidad--;
     } else {
@@ -522,11 +510,9 @@ window.comprobarCheckout = async () => {
         return; 
     } 
     
-    // NUEVO: Verificación del Checkbox Legal de Devoluciones
     const checkboxLegal = document.getElementById('checkbox-legal-carrito');
     if (checkboxLegal && !checkboxLegal.checked) {
         mostrarNotificacionFlotante("⚠️ Debes aceptar las Condiciones de Venta y Devolución antes de pagar", "orange");
-        // Hacemos que el checkbox parpadee para que lo vean
         checkboxLegal.parentElement.style.color = '#e74c3c';
         setTimeout(() => checkboxLegal.parentElement.style.color = '#7f8c8d', 1000);
         return;
@@ -566,7 +552,6 @@ window.comprobarCheckout = async () => {
 
     const miPedidoId = pedidoData[0].id;
 
-    // AHORA SOLO LE MANDAMOS AL BANCO LA MATRÍCULA Y LA CANTIDAD. EL SERVIDOR HACE EL RESTO.
     const carritoParaStripe = carrito.map(p => ({
         referencia: p.referencia, 
         cantidad: p.cantidad || 1 
@@ -632,7 +617,6 @@ window.recuperarPass = async function() {
     const txtO = btn.innerText;
     btn.innerText = "Enviando... ✉️"; btn.disabled = true;
 
-    // ⚡ LA PIEZA CLAVE: Forzamos la ruta completa para GitHub Pages
     const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
 
     const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { 
@@ -660,17 +644,16 @@ window.procesarAuth = async function() {
 
     btn.innerText = "Conectando... ⚙️"; btn.disabled = true;
     let res = (titulo === 'Iniciar Sesión') ? await clienteSupabase.auth.signInWithPassword({ email, password: pass }) : await clienteSupabase.auth.signUp({ email, password: pass });
+    
     if (res.error) {
         mostrarMensajeAuth("❌ " + res.error.message, "#ff7675");
         btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); 
         btn.disabled = false;
 
-        // ⚡ PIEZA NUEVA: BORRAR Y TEMBLAR
         const inputPass = document.getElementById('pass-login');
         if (inputPass) {
-            inputPass.value = ''; // Borra lo que han escrito
-            inputPass.classList.add('animacion-error'); // Hace que tiemble
-            // Quitamos la clase a los 400ms para que pueda volver a temblar si fallan otra vez
+            inputPass.value = ''; 
+            inputPass.classList.add('animacion-error'); 
             setTimeout(() => inputPass.classList.remove('animacion-error'), 400);
         }
     } else {
@@ -697,7 +680,6 @@ function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
 }
 
 window.cerrarSesionSegura = function() {
-    // ⚡ CREAMOS NUESTRA PROPIA BURBUJA DE TALLER
     let modal = document.getElementById('modal-logout-custom');
     if (!modal) {
         modal = document.createElement('div');
@@ -722,7 +704,7 @@ window.cerrarSesionSegura = function() {
 window.ejecutarCierreSesion = async () => {
     document.getElementById('modal-logout-custom').style.display = 'none';
     await clienteSupabase.auth.signOut();
-    window.location.href = 'index.html'; // Te manda al inicio al salir
+    window.location.href = 'index.html'; 
 };
 
 window.abrirPestanaPerfil = (id) => {
@@ -736,7 +718,6 @@ window.abrirPestanaPerfil = (id) => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
     
-    // Si volvemos de Stripe con éxito, vaciamos la cesta y avisamos
     if (window.location.href.includes('session_id=')) {
         carrito = [];
         localStorage.setItem('mi_carrito', JSON.stringify(carrito));
@@ -750,13 +731,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const session = authData.session;
 
     if (session) {
-        // 🔑 SEGURIDAD: Si el email es el tuyo, mostramos el acceso de admin
         if (session.user.email === 'davidherrerogarcia12@gmail.com') { 
             const linkAdmin = document.getElementById('link-admin-peticiones');
             if(linkAdmin) linkAdmin.style.display = 'block';
             const linkAdminPedidos = document.getElementById('link-admin-pedidos');
             if(linkAdminPedidos) linkAdminPedidos.style.display = 'block';
-            // NUEVO: Mostramos el botón de subir piezas
             const linkAdminPiezas = document.getElementById('link-admin-piezas');
             if(linkAdminPiezas) linkAdminPiezas.style.display = 'block';
         }
@@ -802,27 +781,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // --- 1. EL DETECTOR INFALIBLE DE RECUPERACIÓN ---
-    // Atrapamos la URL nada más cargar la página, antes de que Supabase la borre
     let modoRecuperacion = window.location.href.includes('type=recovery');
 
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
         console.log("Centralita Supabase dice:", event); 
         
         if (event === 'PASSWORD_RECOVERY' || modoRecuperacion) {
-            modoRecuperacion = true; // Activamos el escudo
-            setTimeout(() => mostrarVentanaNuevaPass(), 300); // Retardo táctico
+            modoRecuperacion = true; 
+            setTimeout(() => mostrarVentanaNuevaPass(), 300); 
         } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
-            // ¡ESCUDO! Solo recarga si NO estamos recuperando clave
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
             window.location.reload();
         }
     });
 
-// --- 2. LA VENTANA DE LA LLAVE NUEVA ---
 window.mostrarVentanaNuevaPass = function() {
-    if(document.getElementById('modal-cambio-pass')) return; // Evita que salgan dos
+    if(document.getElementById('modal-cambio-pass')) return; 
 
     const modal = document.createElement('div');
     modal.id = 'modal-cambio-pass';
@@ -840,7 +815,6 @@ window.mostrarVentanaNuevaPass = function() {
     document.body.appendChild(modal);
 };
 
-// --- 3. GRABAR A FUEGO LA CLAVE ---
 window.ejecutarCambioPass = async function() {
     const nueva = document.getElementById('input-nueva-pass').value;
     if (nueva.length < 6) return alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
@@ -849,7 +823,6 @@ window.ejecutarCambioPass = async function() {
     btn.innerText = "Guardando... ⏳";
     btn.disabled = true;
 
-    // Supabase actualiza la clave aquí
     const { error } = await clienteSupabase.auth.updateUser({ password: nueva });
 
     if (error) {
@@ -858,8 +831,8 @@ window.ejecutarCambioPass = async function() {
         btn.disabled = false;
     } else {
         alert("✅ ¡Contraseña actualizada con éxito! Entrando al taller...");
-        window.location.hash = ''; // Limpiamos la URL para no dejar rastro
-        window.location.href = 'perfil.html'; // Al panel de control directos
+        window.location.hash = ''; 
+        window.location.href = 'perfil.html'; 
     }
 };
 
@@ -912,7 +885,7 @@ window.ejecutarCambioPass = async function() {
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
 
-}); // FIN DE DOMContentLoaded
+}); 
 
 // ==========================================
 // 10. GESTIÓN DEL PERFIL PROFESIONAL
@@ -1100,9 +1073,6 @@ window.filtrarPorMiCoche = function() {
 // ==========================================
 // 12. HISTORIAL DE PEDIDOS
 // ==========================================
-// ==========================================
-// 12. HISTORIAL DE PEDIDOS (VERSIÓN PREMIUM)
-// ==========================================
 window.cargarMisPedidos = async function() {
     const contenedor = document.getElementById('lista-mis-pedidos');
     if (!contenedor || !sessionActiva || !usuarioId) return;
@@ -1138,7 +1108,6 @@ window.cargarMisPedidos = async function() {
         const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
         const fechaBonita = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
 
-        // 1. Montamos la lista de piezas
         let articulosHtml = '';
         const listaArticulos = pedido.articulos || []; 
         listaArticulos.forEach(art => {
@@ -1156,7 +1125,6 @@ window.cargarMisPedidos = async function() {
             `;
         });
 
-        // 2. Montamos la dirección de envío bonita (Cambiamos los \n por <br> para HTML)
         let direccionHtml = '';
         if (pedido.direccion_envio) {
             let dirLimpia = pedido.direccion_envio.replace(/\n/g, '<br>');
@@ -1168,17 +1136,14 @@ window.cargarMisPedidos = async function() {
             `;
         }
 
-        // 3. Juntamos toda la tarjeta y le añadimos los botones inteligentes
         let botonesCliente = '<div style="padding: 15px 20px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px dashed #eee; background: #fff;">';
         
-        // Botón Cancelar (Aparece solo si NO está enviado)
         if (pedido.estado !== 'Enviado' && pedido.estado !== 'Entregado' && pedido.estado !== 'Cancelado') {
             botonesCliente += `<button onclick="cancelarMiPedido('${pedido.id}')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; box-shadow:0 2px 5px rgba(231,76,60,0.3);">❌ Cancelar Pedido</button>`;
         }
         
-        // Botón Devolución (Aparece solo si YA ha sido enviado o entregado)
         if (pedido.estado === 'Enviado' || pedido.estado === 'Entregado') {
-            const emailTaller = "giljulio9876@gmail.com"; // <--- ¡CAMBIA ESTO POR TU EMAIL REAL!
+            const emailTaller = "giljulio9876@gmail.com"; 
             const asunto = encodeURIComponent(`Solicitud de Devolución - Pedido #${pedido.id}`);
             const cuerpo = encodeURIComponent(`Hola Taller La Estación,\n\nQuiero solicitar la devolución del pedido #${pedido.id}.\n\nEl motivo de la devolución es:\n[Escribe aquí tu motivo]\n\n* Entiendo que la pieza no puede mostrar signos de haber sido montada ni manchada de grasa, y debe ir en su embalaje original.\n\nSaludos.`);
             botonesCliente += `<a href="mailto:${emailTaller}?subject=${asunto}&body=${cuerpo}" style="background:#7f8c8d; color:white; text-decoration:none; padding:8px 15px; border-radius:5px; font-weight:bold; display:inline-block; box-shadow:0 2px 5px rgba(127,140,141,0.3);">📦 Solicitar Devolución</a>`;
@@ -1216,11 +1181,10 @@ window.cargarMisPedidos = async function() {
 
     contenedor.innerHTML = html;
 };
+
 // ==========================================
 // 13. RADAR DE PETICIONES (Con verificación y Aviso)
 // ==========================================
-
-// 1. La función que lee los datos y comprueba el email
 window.enviarPeticionRadar = function() {
     const coche = document.getElementById('radar-coche').value.trim();
     const pieza = document.getElementById('radar-pieza').value.trim();
@@ -1231,21 +1195,17 @@ window.enviarPeticionRadar = function() {
         return;
     }
 
-    // Filtro para obligar a que pongan un email válido con @
     if (!contacto.includes('@')) {
         mostrarNotificacionFlotante("⚠️ El contacto debe ser un email válido (te falta poner la '@').", "orange");
         return;
     }
 
-    // Si todo está bien, sacamos el cartel de advertencia
     confirmarPeticionRadar(coche, pieza, contacto);
 };
 
-// 2. El Cartel (Modal) que avisa al cliente
 window.confirmarPeticionRadar = function(coche, pieza, contacto) {
     let modal = document.getElementById('modal-radar-custom');
     
-    // Si no existe, lo creamos de la nada
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'modal-radar-custom';
@@ -1253,7 +1213,6 @@ window.confirmarPeticionRadar = function(coche, pieza, contacto) {
         document.body.appendChild(modal);
     }
 
-    // Le metemos el texto personalizado con su email
     modal.innerHTML = `
         <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:450px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3); transform:scale(0.9); transition:0.2s;" id="caja-modal-radar">
             <div style="font-size: 3.5em; margin-bottom: 10px;">👨‍🔧</div>
@@ -1272,14 +1231,12 @@ window.confirmarPeticionRadar = function(coche, pieza, contacto) {
     modal.style.display = 'flex';
     setTimeout(() => document.getElementById('caja-modal-radar').style.transform = 'scale(1)', 10);
 
-    // Si le da a Darle Gas, enviamos a Supabase
     document.getElementById('btn-confirmar-radar').onclick = () => {
         cerrarModalRadar();
         ejecutarEnvioRadar(coche, pieza, contacto);
     };
 };
 
-// 3. Función para cerrar el cartel
 window.cerrarModalRadar = function() {
     const modal = document.getElementById('modal-radar-custom');
     const caja = document.getElementById('caja-modal-radar');
@@ -1289,7 +1246,6 @@ window.cerrarModalRadar = function() {
     }
 };
 
-// 4. El envío real a Supabase
 window.ejecutarEnvioRadar = async function(coche, pieza, contacto) {
     mostrarNotificacionFlotante("Buscando proveedores... ⚙️", "#3498db");
 
@@ -1307,6 +1263,7 @@ window.ejecutarEnvioRadar = async function(coche, pieza, contacto) {
         document.getElementById('radar-contacto').value = '';
     }
 };
+
 // ==========================================
 // 14. GESTIÓN DE PETICIONES (MODO ADMIN)
 // ==========================================
@@ -1314,7 +1271,6 @@ window.cargarPeticionesAdmin = async function() {
     const contenedor = document.getElementById('lista-peticiones-admin');
     if (!contenedor) return;
 
-    // Pedimos los datos a Supabase ordenados por los más nuevos
     const { data: peticiones, error } = await clienteSupabase
         .from('peticiones_piezas')
         .select('*')
@@ -1348,19 +1304,18 @@ window.cargarPeticionesAdmin = async function() {
     contenedor.innerHTML = html;
 };
 
-// Truco de mecánico: Le decimos a la pestaña que cargue los datos al hacer clic
 if (typeof window.abrirPestanaPerfil === "function") {
     const originalAbrirPestana = window.abrirPestanaPerfil;
     window.abrirPestanaPerfil = function(id) {
         originalAbrirPestana(id); 
         if (id === 'tab-peticiones') window.cargarPeticionesAdmin();
-        if (id === 'tab-admin-pedidos') window.cargarTodosLosPedidosAdmin(); // <-- Nueva línea
+        if (id === 'tab-admin-pedidos') window.cargarTodosLosPedidosAdmin(); 
     };
 }
+
 // ==========================================
 // 15. GESTIÓN GLOBAL DE PEDIDOS (MODO ADMIN)
 // ==========================================
-
 window.cargarTodosLosPedidosAdmin = async function() {
     const contenedor = document.getElementById('lista-pedidos-global');
     if (!contenedor) return;
@@ -1380,8 +1335,7 @@ window.cargarTodosLosPedidosAdmin = async function() {
         const items = JSON.parse(p.items || '[]');
         const fecha = new Date(p.fecha).toLocaleString();
         
-        // Color según el estado
-        let colorEstado = "#f39c12"; // Naranja para pendiente
+        let colorEstado = "#f39c12"; 
         if(p.estado === 'Enviado') colorEstado = "#3498db";
         if(p.estado === 'Entregado') colorEstado = "#27ae60";
         if(p.estado === 'Cancelado') colorEstado = "#e74c3c";
@@ -1425,6 +1379,7 @@ window.cambiarEstadoPedido = async function(id, nuevoEstado) {
         window.cargarTodosLosPedidosAdmin();
     }
 };
+
 // ==========================================
 // 16. CANCELAR MI PEDIDO (MODO CLIENTE)
 // ==========================================
@@ -1440,15 +1395,14 @@ window.cancelarMiPedido = async function(id) {
         mostrarNotificacionFlotante("❌ Error al cancelar el pedido", "#e74c3c");
     } else {
         mostrarNotificacionFlotante("✅ Pedido cancelado correctamente", "#27ae60");
-        // Recargamos la vista para que desaparezca el botón
         if (typeof cargarMisPedidos === "function") cargarMisPedidos();
     }
 };
+
 // ==========================================
 // 17. ESCUDO LEGAL (COOKIES)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Si el cliente no ha aceptado las cookies aún, le sacamos el cartel
     if (!localStorage.getItem('cookies_aceptadas_taller')) {
         const divCookies = document.createElement('div');
         divCookies.id = 'cartel-cookies';
@@ -1479,7 +1433,6 @@ window.aceptarCookiesTaller = () => {
 };
 window.rechazarCookiesTaller = () => {
     localStorage.setItem('cookies_aceptadas_taller', 'rechazadas');
-    // Aquí en el futuro, si pones Google Analytics, le dirás por código que no rastree a este usuario
     const cartel = document.getElementById('cartel-cookies');
     if (cartel) {
         cartel.style.transform = 'translateY(100%)';
@@ -1487,6 +1440,7 @@ window.rechazarCookiesTaller = () => {
         setTimeout(() => cartel.remove(), 300);
     }
 };
+
 // ==========================================
 // 18. SUBIR PIEZAS AL CATÁLOGO (MODO ADMIN)
 // ==========================================
@@ -1496,12 +1450,12 @@ window.enviarPiezaNube = async function() {
     const marca = document.getElementById('nueva-marca').value.trim();
     const coche = document.getElementById('nueva-coche').value.trim();
     const precio = document.getElementById('nueva-precio').value.trim();
-    const precio_antiguo = document.getElementById('nueva-precio-antiguo').value.trim(); // NUEVO
+    const precio_antiguo = document.getElementById('nueva-precio-antiguo').value.trim(); 
     const estado = document.getElementById('nueva-estado').value;
     const stock = parseInt(document.getElementById('nueva-stock').value) || 1;
     const foto = document.getElementById('nueva-foto').value.trim();
-    const galeria = document.getElementById('nueva-galeria').value.trim(); // NUEVO
-    const destacado = document.getElementById('nueva-destacado').checked; // NUEVO
+    const galeria = document.getElementById('nueva-galeria').value.trim(); 
+    const destacado = document.getElementById('nueva-destacado').checked; 
 
     if (!titulo || !referencia || !precio) {
         return mostrarNotificacionFlotante("⚠️ Título, Referencia y Precio son obligatorios.", "orange");
@@ -1512,19 +1466,18 @@ window.enviarPiezaNube = async function() {
     btn.innerText = "Subiendo... ⏳";
     btn.disabled = true;
 
-    // Insertamos en la tabla 'productos' de Supabase
     const { error } = await clienteSupabase.from('productos').insert([{
         titulo: titulo,
         referencia: referencia,
         marca: marca,
         compatible_con: coche,
         precio: precio,
-        precio_antiguo: precio_antiguo || null, // Se manda si existe
+        precio_antiguo: precio_antiguo || null,
         estado: estado,
         stock: stock,
         foto_url: foto || 'https://via.placeholder.com/300?text=Sin+Foto',
-        galeria: galeria || null, // Se manda si existe
-        destacado: destacado, // true o false
+        galeria: galeria || null,
+        destacado: destacado, 
         seccion: 'varios', 
         filtro: 'general'
     }]);
@@ -1538,7 +1491,6 @@ window.enviarPiezaNube = async function() {
     } else {
         mostrarNotificacionFlotante("✅ ¡Pieza subida al catálogo con éxito!", "#27ae60");
         
-        // Limpiamos el formulario para la siguiente
         document.getElementById('nueva-titulo').value = '';
         document.getElementById('nueva-referencia').value = '';
         document.getElementById('nueva-foto').value = '';
@@ -1546,6 +1498,6 @@ window.enviarPiezaNube = async function() {
         document.getElementById('nueva-galeria').value = '';
         document.getElementById('nueva-destacado').checked = false;
         
-        cargarPiezasDesdeLaNube(); // Refrescamos el almacén
+        cargarPiezasDesdeLaNube(); 
     }
 };
