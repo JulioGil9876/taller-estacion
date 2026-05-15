@@ -841,32 +841,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // ⚡ DETECTOR DE RECUPERACIÓN (ATRAPA LA PESTAÑA VIEJA Y LA NUEVA)
+    // ⚡ DETECTOR DE RECUPERACIÓN (SOLO PARA LA PESTAÑA NUEVA DEL EMAIL)
     let modoRecuperacion = window.location.href.includes('type=recovery') || window.location.hash.includes('type=recovery');
+
+    // 1. Si detectamos que ESTA pestaña viene del correo, abrimos la ventana directamente
+    if (modoRecuperacion) {
+        setTimeout(() => {
+            if (typeof window.mostrarVentanaNuevaPass === "function") {
+                window.mostrarVentanaNuevaPass();
+            }
+        }, 800);
+    }
 
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
         console.log("📡 Evento de Auth:", event);
         
-        // Si detectamos la vuelta del email en CUALQUIER pestaña abierta
-        if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && modoRecuperacion)) {
-            console.log("🔑 Sistema de cambio de clave activado.");
-            
-            // Forzamos la variable para que no cierre sesión de golpe
-            modoRecuperacion = true;
-            
-            // Escondemos el mensaje de "Enlace enviado" si estamos en la pestaña vieja
-            const msgRecu = document.getElementById('mensaje-recuperacion');
-            if (msgRecu) msgRecu.style.display = 'none';
-
-            // Lanzamos la ventana de nueva contraseña
+        // 2. Si el walkie-talkie avisa, CONFIRMAMOS que estamos en la pestaña correcta antes de abrir nada
+        if (event === 'PASSWORD_RECOVERY' && modoRecuperacion) {
             setTimeout(() => {
                 if (typeof window.mostrarVentanaNuevaPass === "function") {
                     window.mostrarVentanaNuevaPass();
                 }
             }, 600); 
-        } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
+        } 
+        // 3. Si somos la PESTAÑA VIEJA (no tenemos el código), y la nueva ya ha entrado, nos recargamos en silencio
+        else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
             window.location.reload();
-        } else if (event === 'SIGNED_OUT' && sessionActiva) {
+        } 
+        else if (event === 'SIGNED_OUT' && sessionActiva) {
             window.location.reload();
         }
     });
