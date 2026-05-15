@@ -23,7 +23,6 @@ let carrito = JSON.parse(localStorage.getItem('mi_carrito')) || [];
 
 let paginaActual = 1;
 const PIEZAS_POR_PAGINA = 12;
-
 let cargandoInventario = true; 
 let descargandoPiezas = false;
 
@@ -31,17 +30,15 @@ let descargandoPiezas = false;
 // 2. DESCARGA SEGURA (SISTEMA ANTI-AHOGO)
 // ==========================================
 async function cargarPiezasDesdeLaNube() {
-    if (descargandoPiezas) return; 
-    
+    if (descargandoPiezas) return;
     descargandoPiezas = true; 
     cargandoInventario = true;
     renderizarVista(); 
     
     try {
         const { data, error } = await clienteSupabase.from('productos').select('*');
-        
         if (error) { 
-            console.error("❌ ERROR de Supabase:", error); 
+            console.error("❌ ERROR de Supabase:", error);
             cargandoInventario = false;
             const contenedor = document.getElementById('almacen-piezas');
             if (contenedor) contenedor.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px; background:#fff5f5; border-radius:10px; border:1px solid #ffcccc;"><h3 style="color:#e74c3c;">🚨 Error de conexión</h3><p>${error.message}</p></div>`;
@@ -70,7 +67,7 @@ async function cargarPiezasDesdeLaNube() {
         console.error("💣 FALLO CRÍTICO:", err);
         cargandoInventario = false;
     } finally {
-        descargandoPiezas = false; 
+        descargandoPiezas = false;
     }
 }
 
@@ -81,11 +78,10 @@ function generarFiltrosDeMarca() {
     const contenedor = document.getElementById('contenedor-marcas-dinamicas');
     if (!contenedor) return;
     let marcas = [...new Set(inventarioNube.map(p => p.marca || 'Otras'))].filter(m => m);
-    
-    // ⚡ AQUÍ CREAMOS EL BUSCADOR CON DESPLEGABLE (Datalist)
     let html = `
         <div style="position:relative; width:100%; margin-bottom: 10px;">
-            <input list="lista-marcas-filtro" id="input-buscar-marca" placeholder="🔍 Escribe o elige una marca..." onchange="filtrarMarca(null, this.value)" style="width:100%; padding:12px 15px; border-radius:8px; border:2px solid #eee; font-size:1em; outline:none; box-shadow:inset 0 2px 5px rgba(0,0,0,0.02); transition: 0.3s;" onfocus="this.style.borderColor='#e74c3c'" onblur="this.style.borderColor='#eee'">
+            <input list="lista-marcas-filtro" id="input-buscar-marca" placeholder="🔍 Escribe o elige una marca..." onchange="filtrarMarca(null, this.value)" style="width:100%; padding:12px 15px; border-radius:8px; border:2px solid #eee; font-size:1em; outline:none; box-shadow:inset 0 2px 5px rgba(0,0,0,0.02); transition: 0.3s;"
+onfocus="this.style.borderColor='#e74c3c'" onblur="this.style.borderColor='#eee'">
             <datalist id="lista-marcas-filtro">
                 <option value="todas">Mostrar todas las marcas</option>
                 ${marcas.map(m => `<option value="${m}">${m}</option>`).join('')}
@@ -96,14 +92,10 @@ function generarFiltrosDeMarca() {
 }
 
 window.filtrarMarca = (btn, marca) => {
-    // Si la marca no existe o es "todas", borramos el filtro
     marcaActual = (marca === 'todas' || !marca) ? '' : marca;
-    
-    // Si hay botones antiguos los limpiamos (por si acaso)
     document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
     if(btn) { btn.style.background = '#2c3e50'; btn.style.color = 'white'; }
     
-    // Sincronizamos el buscador con la etiqueta que se haya pulsado
     const inputBuscador = document.getElementById('input-buscar-marca');
     if (inputBuscador && !btn) {
         inputBuscador.value = marca === 'todas' ? '' : marca;
@@ -128,7 +120,8 @@ function generarSubFiltros() {
 window.filtrarSub = (btn, sub) => {
     filtroActual = sub;
     document.querySelectorAll('.btn-subfiltro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
-    if(btn) { btn.style.background = '#e74c3c'; btn.style.color = 'white'; }
+    if(btn) { btn.style.background = '#e74c3c'; btn.style.color = 'white';
+    }
     paginaActual = 1; 
     renderizarVista();
 }
@@ -140,21 +133,21 @@ function actualizarEtiquetasFiltros() {
     
     if (rutaActual !== 'inicio' && rutaActual !== 'favoritos') html += `<div class="chip-filtro" onclick="quitarFiltro('ruta')" title="Quitar este filtro">Categoría: ${rutaActual.toUpperCase()} ✖</div>`;
     if (filtroActual !== 'todos') html += `<div class="chip-filtro" onclick="quitarFiltro('sub')" title="Quitar este filtro">Tipo: ${filtroActual.toUpperCase()} ✖</div>`;
-    
     if (marcaActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('marca')" style="background:#3498db; color:white; border-color:#3498db;" title="Quitar filtro de marca">Marca: ${marcaActual.toUpperCase()} ✖</div>`;
-    
-    if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;" title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
+    if (cocheActual !== '') html += `<div class="chip-filtro" onclick="quitarFiltro('coche')" style="background:#2c3e50; color:white; font-weight:bold; border-color:#2c3e50; padding: 6px 12px; border-radius: 15px; cursor: pointer; display: inline-block;"
+title="Quitar filtro de vehículo">🚗 Coche: ${cocheActual.toUpperCase()} ✖</div>`;
     
     contenedor.innerHTML = html;
 }
 
 window.quitarFiltro = (tipo) => {
-    paginaActual = 1; 
+    paginaActual = 1;
     if (tipo === 'ruta') {
         rutaActual = 'inicio'; filtroActual = 'todos';
         document.querySelectorAll('.btn-ruta-v').forEach(b => { b.style.background = 'white'; b.style.color = 'black'; b.style.borderColor = '#ddd'; });
         const btnInicio = document.querySelector('.btn-ruta-v[data-ruta="inicio"]');
-        if(btnInicio) { btnInicio.style.background = '#e74c3c'; btnInicio.style.color = 'white'; btnInicio.style.borderColor = '#e74c3c'; }
+        if(btnInicio) { btnInicio.style.background = '#e74c3c'; btnInicio.style.color = 'white'; btnInicio.style.borderColor = '#e74c3c';
+        }
         if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = 'Catálogo General';
         generarSubFiltros();
     }
@@ -162,7 +155,8 @@ window.quitarFiltro = (tipo) => {
         filtroActual = 'todos';
         document.querySelectorAll('.btn-subfiltro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
         const btnTodos = document.querySelector('.btn-subfiltro[onclick*="todos"]');
-        if(btnTodos) { btnTodos.style.background = '#e74c3c'; btnTodos.style.color = 'white'; }
+        if(btnTodos) { btnTodos.style.background = '#e74c3c';
+        btnTodos.style.color = 'white'; }
     }
     if (tipo === 'busqueda') {
         busquedaActual = '';
@@ -172,7 +166,7 @@ window.quitarFiltro = (tipo) => {
         if(btnTodas) { btnTodas.style.background = '#2c3e50'; btnTodas.style.color = 'white'; }
     }
     if (tipo === 'coche') {
-        cocheActual = ''; 
+        cocheActual = '';
         const selectGaraje = document.getElementById('filtro-garaje');
         if (selectGaraje) selectGaraje.value = ''; 
     }
@@ -180,7 +174,8 @@ window.quitarFiltro = (tipo) => {
         marcaActual = '';
         document.querySelectorAll('.btn-marca-filtro').forEach(b => { b.style.background = '#f0f0f0'; b.style.color = '#333'; });
         const btnTodas = document.querySelector('.btn-marca-filtro[onclick*="todas"]');
-        if(btnTodas) { btnTodas.style.background = '#2c3e50'; btnTodas.style.color = 'white'; }
+        if(btnTodas) { btnTodas.style.background = '#2c3e50';
+        btnTodas.style.color = 'white'; }
     }
     renderizarVista();
 }
@@ -191,13 +186,12 @@ window.quitarFiltro = (tipo) => {
 function renderizarVista() {
     const contenedor = document.getElementById('almacen-piezas');
     if(!contenedor) return;
-
     if (cargandoInventario) {
         contenedor.innerHTML = `
             <div style="grid-column: 1 / -1; text-align:center; padding:80px 20px; background:white; border-radius:15px; border:1px solid #eee; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
                 <div style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #e74c3c; border-radius:50%; animation: girar 1s linear infinite; margin:0 auto 20px;"></div>
                 <h3 style="color:#2d3436; margin:0; font-size:1.4em;">Sincronizando almacén...</h3>
-            </div>`;
+             </div>`;
         return; 
     }
 
@@ -207,23 +201,19 @@ function renderizarVista() {
     }
 
     const termino = busquedaActual.toLowerCase();
-    // VARIABLE SEGURA DESDE SUPABASE
     let misFavoritos = (sessionActiva && Array.isArray(favoritosNube)) ? favoritosNube : [];
 
     let filtradas = inventarioNube.filter(p => {
         if (rutaActual === 'favoritos') return misFavoritos.includes(p.referencia);
         let r = (rutaActual === 'inicio') || (p.seccion === rutaActual);
         let f = (filtroActual === 'todos') || (p.filtro === filtroActual);
-        
         let m = (marcaActual === '') || (p.marca && p.marca.toLowerCase() === marcaActual.toLowerCase()); 
-        
         let textoBusqueda = ((p.titulo||'') + (p.referencia||'') + (p.compatible_con||'')).toLowerCase();
         let b = termino === '' || textoBusqueda.includes(termino);
         let c = cocheActual === '' || (p.compatible_con && p.compatible_con.toLowerCase().includes(cocheActual.toLowerCase()));
         
         return r && f && m && b && c; 
     });
-
     filtradas.sort((a, b) => {
         const limpia = (p) => parseFloat(p ? p.toString().replace(/[^\d,-]/g, '').replace(',', '.') : 0);
         
@@ -244,10 +234,14 @@ function renderizarVista() {
             ? `<div style="display:flex; flex-direction:column;"><span style="text-decoration:line-through;color:#a4b0be;font-size:0.85em;">${p.precio_antiguo}</span><span style="color:#e74c3c;font-weight:900;font-size:1.6em;line-height:1;">${p.precio || '0€'} <span style="background:#ff7675;color:white;padding:2px 5px;border-radius:4px;font-size:0.4em;vertical-align:middle;">OFERTA</span></span></div>` 
             : `<span style="font-weight:900;font-size:1.6em;color:#2d3436;">${p.precio || 'Consultar'}</span>`;
             
-        // PEGATINA DEL CORAZÓN (Limpia y a prueba de errores)
         let esFavorito = misFavoritos.includes(p.referencia);
-        let pegatinaFav = esFavorito ? '<span style="position:absolute; top:10px; left:10px; background:white; border-radius:50%; padding:4px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:10; font-size:1.2em;" title="Guardado en favoritos">❤️</span>' : '';
-        
+        let pegatinaFav = '';
+        try {
+            if (Array.isArray(misFavoritos) && misFavoritos.includes(p.referencia)) {
+                pegatinaFav = '<span style="position:absolute; top:10px; left:10px; background:white; border-radius:50%; padding:4px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:10; font-size:1.2em;" title="Guardado en favoritos">❤️</span>';
+            }
+        } catch(error) { console.warn("Fusible favoritos", error); }
+
         let agotado = p.stock !== undefined && p.stock <= 0;
         let cartelAgotado = agotado ? '<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-10deg);background:rgba(231,76,60,0.95);color:white;padding:8px 20px;font-size:1.4em;font-weight:900;border:3px solid white;border-radius:8px;z-index:20;box-shadow:0 5px 15px rgba(0,0,0,0.3);letter-spacing:1px;white-space:nowrap;">AGOTADO</div>' : '';
         let btnAñadir = agotado ? `<button disabled style="flex:2; padding:10px; background:#bdc3c7; color:white; border:none; border-radius:6px; cursor:not-allowed; font-weight:bold;">❌ Sin Stock</button>` : `<button onclick="añadirAlCarrito('${p.referencia}', event)" class="btn-rojo" style="flex:2; padding:10px;">🛒 Añadir</button>`;
@@ -288,9 +282,8 @@ function renderizarVista() {
             </div>
         `;
     });
-    
     contenedor.innerHTML = html || '<div style="width:100%; text-align:center; padding:60px;"><span style="font-size:3em;">🕵️‍♂️</span><h3 style="color:#636e72; margin-top:10px;">No encontramos piezas con esos filtros</h3></div>';
-    actualizarEtiquetasFiltros(); dibujarPaginacion(totalPaginas); 
+    actualizarEtiquetasFiltros(); dibujarPaginacion(totalPaginas);
 }
 
 // ==========================================
@@ -343,22 +336,24 @@ window.toggleFavorito = async (ref, e) => {
     if (!sessionActiva) { 
         mostrarNotificacionFlotante("🔒 Inicia sesión para guardar favoritos", "#e74c3c");
         window.abrirLogin(); 
-        return; 
+        return;
     }
     const indice = favoritosNube.indexOf(ref);
     const botonPulsado = e ? e.currentTarget : document.getElementById(`btn-fav-${ref}`);
     const btnM = document.getElementById(`btn-fav-modal-${ref}`);
-
     if (indice === -1) {
         favoritosNube.push(ref);
-        if(botonPulsado){ botonPulsado.innerHTML = '❤️'; botonPulsado.classList.add('fav-activo'); }
-        if(btnM){ btnM.innerHTML = '❤️'; btnM.classList.add('fav-activo'); }
+        if(botonPulsado){ botonPulsado.innerHTML = '❤️'; botonPulsado.classList.add('fav-activo');
+        }
+        if(btnM){ btnM.innerHTML = '❤️'; btnM.classList.add('fav-activo');
+        }
         mostrarNotificacionFlotante("⭐ Guardado en tus favoritos", "#f39c12");
         await clienteSupabase.from('favoritos').insert([{ user_id: usuarioId, product_ref: ref }]);
     } else {
         favoritosNube.splice(indice, 1);
         if(botonPulsado){ botonPulsado.innerHTML = '🤍'; botonPulsado.classList.remove('fav-activo'); }
-        if(btnM){ btnM.innerHTML = '🤍'; btnM.classList.remove('fav-activo'); }
+        if(btnM){ btnM.innerHTML = '🤍'; btnM.classList.remove('fav-activo');
+        }
         mostrarNotificacionFlotante("🗑️ Eliminado de favoritos", "#7f8c8d");
         if(rutaActual === 'favoritos') renderizarVista();
         await clienteSupabase.from('favoritos').delete().eq('user_id', usuarioId).eq('product_ref', ref);
@@ -375,61 +370,71 @@ window.abrirModal = (ref) => {
     let fotos = [p.foto_url || 'https://via.placeholder.com/300'];
     if (p.galeria) fotos = fotos.concat(p.galeria.split(',').map(s => s.trim()));
     let miniaturasHtml = fotos.length > 1 ? `<div class="contenedor-miniaturas" style="display:flex; gap:10px; overflow-x:auto; padding:10px; justify-content:center;">` + fotos.map((f, i) => `<img src="${f}" class="mini-foto ${i===0?'activa':''}" onclick="cambiarFoto(this, '${f}')" style="width:70px; height:70px; object-fit:cover; border:2px solid ${i===0?'#e74c3c':'#ddd'}; border-radius:8px; cursor:pointer; opacity:${i===0?'1':'0.6'}; transition:0.2s;">`).join('') + `</div>` : '';
-    
     let esFav = sessionActiva && favoritosNube.includes(p.referencia);
     let agotado = p.stock !== undefined && p.stock <= 0;
-    
     let btnAñadir = agotado 
-        ? `<button disabled style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em; background:#bdc3c7; color:white; border:none; cursor:not-allowed; font-weight:bold;">❌ Agotado temporalmente</button>` 
+        ?
+        `<button disabled style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em; background:#bdc3c7; color:white; border:none; cursor:not-allowed; font-weight:bold;">❌ Agotado temporalmente</button>` 
         : `<button onclick="añadirAlCarrito('${p.referencia}', event); cerrarModal()" class="btn-rojo" style="flex:2; text-align:center; padding:18px 20px; border-radius:8px; font-size:1.1em;">🛒 Añadir al Carrito</button>`;
-        
     let avisoStock = agotado ? `<span style="background:#e74c3c; color:white; padding:4px 10px; border-radius:4px; font-size:0.8em; font-weight:bold; margin-left:10px; vertical-align:middle;">SIN STOCK</span>` : '';
-    
     document.getElementById('modal-contenido-dinamico').innerHTML = `
         <div style="display:flex; flex-wrap:wrap;">
             <div style="flex:1 1 450px; background:#f8f9fa; padding:40px; display:flex; flex-direction:column; align-items:center; border-right:1px solid #eee;">
-                <img id="foto-main" src="${fotos[0]}" style="width:100%; height:350px; object-fit:contain; mix-blend-mode:multiply; transition:opacity 0.2s; margin-bottom:25px; ${agotado ? 'filter:grayscale(80%);' : ''}">
+                <img id="foto-main" src="${fotos[0]}" style="width:100%; height:350px; object-fit:contain; mix-blend-mode:multiply; transition:opacity 0.2s; margin-bottom:25px; ${agotado ? 'filter:grayscale(80%);'
+: ''}">
                 ${miniaturasHtml}
             </div>
             <div style="flex:1 1 350px; padding:50px; display:flex; flex-direction:column;">
                 <span style="color:#a4b0be; font-weight:bold; font-size:0.9em; font-family:monospace;">REF: ${p.referencia} ${avisoStock}</span>
-                <h2 style="margin:10px 0 20px 0; color:#2d3436; font-size:1.8em; line-height:1.2;">${p.titulo || 'Pieza sin título'}</h2>
+                <h2 style="margin:10px 0 20px 0; color:#2d3436; font-size:1.8em; line-height:1.2;">${p.titulo ||
+'Pieza sin título'}</h2>
                 <div style="margin-bottom:25px; font-size:1.05em; color:#2d3436;">
-                    <p style="margin:8px 0;"><strong>Marca:</strong> ${p.marca || 'Otras'}</p>
-                    <p style="margin:8px 0;"><strong>Estado:</strong> ${p.estado || 'Revisado'}</p>
-                    ${p.compatible_con ? `<p style="margin:8px 0;"><strong>Compatible con:</strong> ${p.compatible_con}</p>` : ''}
+                    <p style="margin:8px 0;"><strong>Marca:</strong> ${p.marca ||
+'Otras'}</p>
+                    <p style="margin:8px 0;"><strong>Estado:</strong> ${p.estado ||
+'Revisado'}</p>
+                    ${p.compatible_con ?
+`<p style="margin:8px 0;"><strong>Compatible con:</strong> ${p.compatible_con}</p>` : ''}
                 </div>
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-bottom:30px; border:1px solid #eaeaea; flex-grow:1;">
                     <h4 style="margin-top:0; color:#2d3436; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; font-size:0.9em;">Especificaciones Técnicas</h4>
-                    <p style="font-size:0.95em; color:#636e72; line-height:1.6; margin:0;">${p.descripcion_larga || 'Contacta para detalles técnicos específicos.'}</p>
+                    <p style="font-size:0.95em; color:#636e72; line-height:1.6; margin:0;">${p.descripcion_larga ||
+'Contacta para detalles técnicos específicos.'}</p>
                 </div>
                 
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:10px; gap:20px; border-top:1px solid #eee; padding-top:25px;">
                     <div>
-                        <span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br>
-                        <span style="font-size:2.8em; font-weight:900; color:${agotado ? '#bdc3c7' : '#e74c3c'}; line-height:1;">${p.precio || 'Consultar'}</span>
+                  
+        <span style="font-size:0.8em; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">Precio Final</span><br>
+                        <span style="font-size:2.8em; font-weight:900; color:${agotado ? '#bdc3c7' : '#e74c3c'}; line-height:1;">${p.precio ||
+'Consultar'}</span>
                     </div>
                     
                     <div style="display:flex; gap:10px;">
-                        <button id="btn-fav-modal-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${esFav ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Guardar en favoritos">${esFav ? '❤️' : '🤍'}</button>
-                        <button onclick="compartirPieza('${p.referencia}', event)" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Copiar enlace de esta pieza">🔗</button>
+                        <button id="btn-fav-modal-${p.referencia}" onclick="toggleFavorito('${p.referencia}', event)" class="btn-icono-accion ${esFav ? 'fav-activo' : ''}" style="background:#f1f2f6; border:none; width:50px; height:50px; 
+border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Guardar en favoritos">${esFav ?
+'❤️' : '🤍'}</button>
+                        <button onclick="compartirPieza('${p.referencia}', event)" style="background:#f1f2f6; border:none; width:50px; height:50px; border-radius:50%; cursor:pointer; font-size:1.2em; transition:0.2s;"
+onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Copiar enlace de esta pieza">🔗</button>
                     </div>
                 </div>
                 
                 <div style="display:flex; gap:10px; margin-top:20px; width:100%;">
                     ${btnAñadir}
+  
                 </div>
             </div>
         </div>`;
-    document.getElementById('modal-producto').style.display = 'flex';
+document.getElementById('modal-producto').style.display = 'flex';
 }
 
 window.cambiarFoto = (el, url) => {
     document.getElementById('foto-main').style.opacity = '0';
-    setTimeout(() => { document.getElementById('foto-main').src = url; document.getElementById('foto-main').style.opacity = '1'; }, 150);
+setTimeout(() => { document.getElementById('foto-main').src = url; document.getElementById('foto-main').style.opacity = '1'; }, 150);
     const miniaturas = el.parentElement.children;
-    for(let i=0; i<miniaturas.length; i++) { miniaturas[i].style.borderColor = '#ddd'; miniaturas[i].style.opacity = '0.6'; }
-    el.style.borderColor = '#e74c3c'; el.style.opacity = '1';
+for(let i=0; i<miniaturas.length; i++) { miniaturas[i].style.borderColor = '#ddd'; miniaturas[i].style.opacity = '0.6'; }
+    el.style.borderColor = '#e74c3c';
+el.style.opacity = '1';
 }
 
 window.cerrarModal = () => document.getElementById('modal-producto').style.display = 'none';
@@ -437,8 +442,10 @@ window.cerrarModal = () => document.getElementById('modal-producto').style.displ
 // ==========================================
 // 7. CARRITO DE COMPRAS & STRIPE REAL 💳
 // ==========================================
-window.abrirPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '0'; document.getElementById('overlay-carrito').style.display = 'block'; }
-window.cerrarPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '-400px'; document.getElementById('overlay-carrito').style.display = 'none'; }
+window.abrirPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '0';
+document.getElementById('overlay-carrito').style.display = 'block'; }
+window.cerrarPanelCarrito = () => { document.getElementById('panel-carrito').style.right = '-400px'; document.getElementById('overlay-carrito').style.display = 'none';
+}
 
 window.añadirAlCarrito = (ref, e) => {
     if(e) e.stopPropagation();
@@ -473,7 +480,6 @@ function actualizarInterfazCarrito() {
     const lista = document.getElementById('lista-carrito');
     const contadores = document.querySelectorAll('#contador-carrito');
     const totalTxt = document.getElementById('total-precio-carrito');
-
     let totalArticulos = carrito.reduce((sum, item) => sum + (item.cantidad || 1), 0);
 
     if (carrito.length === 0) {
@@ -485,7 +491,8 @@ function actualizarInterfazCarrito() {
 
     contadores.forEach(c => { c.innerText = totalArticulos; c.style.display = 'block'; });
 
-    let html = ''; let sumaTotal = 0;
+    let html = '';
+    let sumaTotal = 0;
     carrito.forEach((p, index) => {
         let cantidad = p.cantidad || 1;
         let prec = p.precio ? parseFloat(p.precio.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
@@ -497,7 +504,8 @@ function actualizarInterfazCarrito() {
                     <h4 style="font-size:0.9em; margin:0; color:#2c3e50;">${p.titulo} <span style="background:#e74c3c; color:white; padding:2px 6px; border-radius:10px; font-size:0.8em; margin-left:5px;">x${cantidad}</span></h4>
                     <span style="color:#e74c3c; font-weight:bold;">${p.precio || '0€'}</span>
                 </div>
-                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#e74c3c; font-weight:bold; font-size:1.5em; background:#fdf2f2; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:8px;" title="Quitar uno">-</span>
+                <span onclick="eliminarDelCarrito(${index})" style="cursor:pointer; color:#e74c3c; font-weight:bold; font-size:1.5em; background:#fdf2f2; width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+border-radius:8px;" title="Quitar uno">-</span>
             </div>`;
     });
     if(lista) lista.innerHTML = html;
@@ -556,7 +564,7 @@ window.comprobarCheckout = async () => {
             articulos: carrito,
             estado: 'Pendiente de pago ⏳'
         }])
-        .select(); 
+        .select();
 
     if (pedidoError || !pedidoData || pedidoData.length === 0) {
         console.error("Error al crear pedido:", pedidoError);
@@ -585,7 +593,7 @@ window.comprobarCheckout = async () => {
         btnCheckout.style.background = "#e74c3c";
         btnCheckout.disabled = false;
     } else if (stripeData && stripeData.url) {
-        window.location.href = stripeData.url; 
+        window.location.href = stripeData.url;
     } else {
         mostrarNotificacionFlotante("❌ El banco no respondió correctamente", "#e74c3c");
         btnCheckout.innerHTML = txtOriginal;
@@ -601,55 +609,36 @@ window.abrirLogin = () => document.getElementById('modal-login').style.display =
 window.cerrarLogin = () => document.getElementById('modal-login').style.display = 'none';
 
 window.cambiarModoAuth = () => {
-    const card = document.getElementById('auth-card'); const titulo = document.getElementById('titulo-login');
+    const card = document.getElementById('auth-card');
+    const titulo = document.getElementById('titulo-login');
     const subtitulo = document.getElementById('subtitulo-login'); const btn = document.getElementById('btn-accion-login');
     const icono = document.getElementById('icono-auth'); const link = document.getElementById('link-cambio-auth');
     const textoC = document.getElementById('texto-cambio-auth'); const cajaReglas = document.getElementById('reglas-pass');
     const cajaRecup = document.getElementById('contenedor-recuperar');
 
     icono.classList.add('icono-girar'); setTimeout(() => icono.classList.remove('icono-girar'), 500);
-
     if (titulo.innerText === 'Iniciar Sesión') {
         if(card) card.classList.add('modo-registro-activo');
-        titulo.innerText = 'Nueva Cuenta'; subtitulo.innerText = 'Regístrate en menos de 1 minuto ⏱️';
+        titulo.innerText = 'Nueva Cuenta';
+        subtitulo.innerText = 'Regístrate en menos de 1 minuto ⏱️';
         btn.innerText = 'ARRANCAR MI CUENTA 🏁'; btn.style.background = '#27ae60';
         icono.innerText = '🏁'; textoC.innerText = '¿Ya tienes cuenta?'; link.innerText = 'Iniciar sesión ahora'; link.style.color = '#27ae60';
         if(cajaReglas) cajaReglas.style.display = 'block';
         if(cajaRecup) cajaRecup.style.display = 'none';
     } else {
         if(card) card.classList.remove('modo-registro-activo');
-        titulo.innerText = 'Iniciar Sesión'; subtitulo.innerText = 'Acceso para clientes de La Estación';
+        titulo.innerText = 'Iniciar Sesión';
+        subtitulo.innerText = 'Acceso para clientes de La Estación';
         btn.innerText = 'ENTRAR'; btn.style.background = '#e74c3c';
-        icono.innerText = '🔑'; textoC.innerText = '¿Eres nuevo por aquí?'; link.innerText = 'Crear una cuenta nueva'; link.style.color = '#e74c3c';
+        icono.innerText = '🔑';
+        textoC.innerText = '¿Eres nuevo por aquí?'; link.innerText = 'Crear una cuenta nueva'; link.style.color = '#e74c3c';
         if(cajaReglas) cajaReglas.style.display = 'none';
         if(cajaRecup) cajaRecup.style.display = 'block';
     }
 }
 
-window.recuperarPass = async function() {
-    const email = document.getElementById('email-login').value;
-    if (!email) return mostrarMensajeAuth("⚠️ Escribe tu email arriba para enviar el enlace", "orange");
-    
-    const btn = document.getElementById('btn-accion-login');
-    const txtO = btn.innerText;
-    btn.innerText = "Enviando... ✉️"; btn.disabled = true;
-
-    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
-
-    const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { 
-        redirectTo: rutaCompleta 
-    });
-    
-    error ?
-        mostrarMensajeAuth("❌ " + error.message, "#ff7675") : 
-        mostrarMensajeAuth("✅ Revisa tu email para cambiar la clave", "#55efc4");
-        
-    btn.innerText = txtO;
-    btn.disabled = false;
-}
 // ⚡ NUEVA VENTANA EXCLUSIVA PARA RECUPERAR CONTRASEÑA
 window.abrirRecuperarPass = function() {
-    // Cerramos la ventana de login normal para que no estorbe
     const modalLogin = document.getElementById('modal-login');
     if (modalLogin) modalLogin.style.display = 'none';
 
@@ -687,15 +676,17 @@ window.ejecutarRecuperacionExclusiva = async function() {
         msg.innerText = "⚠️ Por favor, escribe un email válido."; msg.style.color = "orange"; msg.style.background = "#fff3cd"; msg.style.display = "block"; return;
     }
 
-    btn.innerText = "Enviando... ⏳"; btn.disabled = true;
+    btn.innerText = "Enviando... ⏳";
+    btn.disabled = true;
     const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
     const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: rutaCompleta });
-
     if (error) {
-        msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c"; msg.style.background = "#fadbd8"; msg.style.display = "block";
+        msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c";
+        msg.style.background = "#fadbd8"; msg.style.display = "block";
         btn.innerText = 'Intentar de nuevo'; btn.disabled = false;
     } else {
-        msg.innerText = "✅ ¡Enlace enviado! Revisa tu email (o la carpeta de Spam)."; msg.style.color = "#27ae60"; msg.style.background = "#d4edda"; msg.style.display = "block";
+        msg.innerHTML = "✅ <b>¡Enlace enviado!</b><br><br>Pincha en el link de tu correo. <br>Esta pestaña ya no hace falta, <u>puedes cerrarla</u> o esperar a que se abra la nueva.";
+        msg.style.color = "#27ae60"; msg.style.background = "#d4edda"; msg.style.display = "block";
         btn.innerText = '¡Conseguido! 🎉'; btn.style.background = '#27ae60';
     }
 };
@@ -706,14 +697,14 @@ window.loginGoogle = async function() {
 }
 
 window.procesarAuth = async function() {
-    const email = document.getElementById('email-login').value; const pass = document.getElementById('pass-login').value;
+    const email = document.getElementById('email-login').value;
+    const pass = document.getElementById('pass-login').value;
     const titulo = document.getElementById('titulo-login').innerText; const btn = document.getElementById('btn-accion-login');
     if (!email || !pass) return mostrarMensajeAuth("⚠️ Rellena todos los campos", "orange");
     if (titulo === 'Nueva Cuenta' && (pass.length < 6 || !/\d/.test(pass))) return mostrarMensajeAuth("⚠️ La contraseña no es segura", "orange");
-
     btn.innerText = "Conectando... ⚙️"; btn.disabled = true;
-    let res = (titulo === 'Iniciar Sesión') ? await clienteSupabase.auth.signInWithPassword({ email, password: pass }) : await clienteSupabase.auth.signUp({ email, password: pass });
-    
+    let res = (titulo === 'Iniciar Sesión') ?
+    await clienteSupabase.auth.signInWithPassword({ email, password: pass }) : await clienteSupabase.auth.signUp({ email, password: pass });
     if (res.error) {
         mostrarMensajeAuth("❌ " + res.error.message, "#ff7675");
         btn.innerText = (titulo === 'Iniciar Sesión' ? "ENTRAR" : "ARRANCAR MI CUENTA 🏁"); 
@@ -722,7 +713,7 @@ window.procesarAuth = async function() {
         const inputPass = document.getElementById('pass-login');
         if (inputPass) {
             inputPass.value = ''; 
-            inputPass.classList.add('animacion-error'); 
+            inputPass.classList.add('animacion-error');
             setTimeout(() => inputPass.classList.remove('animacion-error'), 400);
         }
     } else {
@@ -733,7 +724,8 @@ window.procesarAuth = async function() {
 
 function mostrarMensajeAuth(texto, color) {
     const div = document.getElementById('mensaje-auth');
-    if(div) { div.innerText = texto; div.style.display = 'block'; div.style.backgroundColor = color + "22"; div.style.color = color; }
+    if(div) { div.innerText = texto; div.style.display = 'block'; div.style.backgroundColor = color + "22"; div.style.color = color;
+    }
 }
 
 function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
@@ -742,7 +734,8 @@ function mostrarNotificacionFlotante(mensaje, color = "#2c3e50") {
     const toast = document.createElement('div');
     toast.id = 'notificacion-flotante';
     toast.innerText = mensaje;
-    toast.style.cssText = `position:fixed; bottom:30px; right:30px; background:${color}; color:white; padding:15px 25px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9999; font-weight:bold; transform:translateY(100px); opacity:0; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);`;
+    toast.style.cssText = `position:fixed; bottom:30px; right:30px; background:${color}; color:white; padding:15px 25px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.2);
+z-index:9999; font-weight:bold; transform:translateY(100px); opacity:0; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);`;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; }, 10);
     setTimeout(() => { toast.style.transform = 'translateY(20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
@@ -812,7 +805,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("👤 Sesión activa confirmada:", session.user.email);
         sessionActiva = true; 
         usuarioId = session.user.id;
-        
         console.log("⏳ Descargando favoritos...");
         try {
             const { data, error } = await clienteSupabase.from('favoritos').select('product_ref').eq('user_id', usuarioId);
@@ -833,7 +825,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.style.color = "#27ae60"; btn.style.borderColor = "#27ae60";
             btn.style.background = "#f0fff4";
         });
-        
         const emailText = document.getElementById('texto-email-perfil');
         if(emailText) emailText.innerText = session.user.email;
 
@@ -850,28 +841,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-
-
-    // ⚡ DETECTOR ULTRA-SENSIBLE DE RECUPERACIÓN DE CONTRASEÑA
-    // Comprobamos tanto la URL limpia como los fragmentos ocultos (#)
+    // ⚡ DETECTOR DE RECUPERACIÓN (ATRAPA LA PESTAÑA VIEJA Y LA NUEVA)
     let modoRecuperacion = window.location.href.includes('type=recovery') || window.location.hash.includes('type=recovery');
 
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
-        console.log("📡 Evento de seguridad detectado:", event); 
+        console.log("📡 Evento de Auth:", event);
         
-        // Si Supabase nos dice que es una recuperación, o lo vemos en la URL, abrimos la ventana
-        if (event === 'PASSWORD_RECOVERY' || modoRecuperacion) {
-            console.log("🔑 Modo recuperación activado. Abriendo ventana...");
+        // Si detectamos la vuelta del email en CUALQUIER pestaña abierta
+        if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && modoRecuperacion)) {
+            console.log("🔑 Sistema de cambio de clave activado.");
             
-            // Forzamos que la variable sea true para que no se cierre
-            modoRecuperacion = true; 
+            // Forzamos la variable para que no cierre sesión de golpe
+            modoRecuperacion = true;
             
-            // Esperamos un pelín a que cargue bien la página y lanzamos el modal
+            // Escondemos el mensaje de "Enlace enviado" si estamos en la pestaña vieja
+            const msgRecu = document.getElementById('mensaje-recuperacion');
+            if (msgRecu) msgRecu.style.display = 'none';
+
+            // Lanzamos la ventana de nueva contraseña
             setTimeout(() => {
                 if (typeof window.mostrarVentanaNuevaPass === "function") {
                     window.mostrarVentanaNuevaPass();
                 }
-            }, 500); 
+            }, 600); 
         } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
             window.location.reload();
         } else if (event === 'SIGNED_OUT' && sessionActiva) {
@@ -907,7 +899,6 @@ window.ejecutarCambioPass = async function() {
     btn.disabled = true;
 
     const { error } = await clienteSupabase.auth.updateUser({ password: nueva });
-
     if (error) {
         alert("❌ Error: " + error.message);
         btn.innerText = "Guardar Contraseña";
@@ -925,6 +916,7 @@ window.ejecutarCambioPass = async function() {
             const pass = e.target.value; const tieneLong = pass.length >= 6; const tieneNum = /\d/.test(pass);
             const rLon = document.getElementById('regla-longitud'); const rNum = document.getElementById('regla-numero');
             if(rLon) { rLon.innerHTML = tieneLong ? '✅ Mínimo 6 caracteres' : '❌ Mínimo 6 caracteres'; rLon.style.color = tieneLong ? '#27ae60' : '#e74c3c'; }
+          
             if(rNum) { rNum.innerHTML = tieneNum ? '✅ Debe contener un número' : '❌ Debe contener un número'; rNum.style.color = tieneNum ? '#27ae60' : '#e74c3c'; }
         });
         inputPass.addEventListener('keypress', (e) => { if (e.key === 'Enter') procesarAuth(); });
@@ -946,12 +938,14 @@ window.ejecutarCambioPass = async function() {
             rutaActual = e.target.getAttribute('data-ruta');
             if(rutaActual === 'favoritos') {
                 e.target.style.background = '#fffbe8'; e.target.style.color = '#d6a200'; e.target.style.borderColor = '#ffd32a';
+      
                 if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = '⭐ Mis Favoritos';
                 if(!sessionActiva) { mostrarNotificacionFlotante("⚠️ Inicia sesión para ver tus piezas guardadas.", "#f39c12"); abrirLogin(); }
             } else {
                 e.target.style.background = '#e74c3c'; e.target.style.color = 'white'; e.target.style.borderColor = '#e74c3c';
-                if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = rutaActual === 'inicio' ? 'Catálogo General' : 'Sección: ' + rutaActual.charAt(0).toUpperCase() + rutaActual.slice(1);
-                generarSubFiltros(); 
+                if(document.getElementById('titulo-ruta')) document.getElementById('titulo-ruta').innerText = 
+                rutaActual === 'inicio' ? 'Catálogo General' : 'Sección: ' + rutaActual.charAt(0).toUpperCase() + rutaActual.slice(1);
+                generarSubFiltros();
             }
             filtroActual = 'todos'; paginaActual = 1; renderizarVista();
         });
@@ -967,7 +961,6 @@ window.ejecutarCambioPass = async function() {
 
     const selectorO = document.getElementById('ordenar-por');
     if (selectorO) selectorO.addEventListener('change', (e) => { criterioOrden = e.target.value; paginaActual = 1; renderizarVista(); });
-
 }); 
 
 // ==========================================
@@ -995,13 +988,11 @@ window.guardarCoche = async function() {
     const txtOriginal = btn.innerText;
     btn.innerText = "Guardando... ⏳";
     btn.disabled = true;
-
     const marcaCoche = palabras[0].toUpperCase();
 
     const { error } = await clienteSupabase.from('coches_clientes').insert([
         { user_id: usuarioId, marca: marcaCoche, modelo: vehiculo }
     ]);
-
     if (error) {
         console.error("Error al guardar coche:", error);
         mostrarNotificacionFlotante("❌ Hubo un error de conexión con el servidor", "#e74c3c");
@@ -1014,7 +1005,6 @@ window.guardarCoche = async function() {
     btn.innerText = txtOriginal;
     btn.disabled = false;
 };
-
 // ==========================================
 // 11. SISTEMA AVANZADO DE GARAJE
 // ==========================================
@@ -1028,7 +1018,6 @@ window.cargarMisCoches = async function() {
         .from('coches_clientes')
         .select('*')
         .eq('user_id', usuarioId);
-
     if (error) {
         console.error("Error cargando coches:", error);
         return;
@@ -1055,7 +1044,7 @@ window.cargarMisCoches = async function() {
     }
 
     if (filtroGaraje) {
-        filtroGaraje.style.display = "inline-block"; 
+        filtroGaraje.style.display = "inline-block";
         filtroGaraje.innerHTML = '<option value="">🚗 Mi Vehículo</option>';
         coches.forEach(coche => {
             filtroGaraje.innerHTML += `<option value="${coche.modelo}">${coche.modelo}</option>`;
@@ -1091,7 +1080,6 @@ function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
 
     modal.style.display = 'flex';
     setTimeout(() => caja.style.transform = 'scale(1)', 10);
-
     if (tipo === 'borrar') {
         titulo.innerHTML = "🗑️ ¿Al desguace?";
         texto.innerText = `¿Seguro que quieres borrar tu ${nombreCoche} del garaje? Esta acción no se puede deshacer.`;
@@ -1101,7 +1089,8 @@ function mostrarModalGaraje(tipo, idCoche, nombreCoche) {
         btn.onclick = async () => {
             cerrarModalGaraje();
             const { error } = await clienteSupabase.from('coches_clientes').delete().eq('id', idCoche);
-            if (!error) { mostrarNotificacionFlotante("🚗 Coche eliminado", "#e74c3c"); window.cargarMisCoches(); }
+            if (!error) { mostrarNotificacionFlotante("🚗 Coche eliminado", "#e74c3c"); window.cargarMisCoches();
+            }
         };
     } else if (tipo === 'editar') {
         titulo.innerHTML = "✏️ Editar Vehículo";
@@ -1127,10 +1116,8 @@ window.cerrarModalGaraje = function() {
     const caja = document.getElementById('caja-modal-garaje');
     if(modal && caja) { caja.style.transform = 'scale(0.9)'; setTimeout(() => modal.style.display = 'none', 150); }
 };
-
 window.borrarCoche = (id, nombre) => mostrarModalGaraje('borrar', id, nombre);
 window.editarCoche = (id, nombre) => mostrarModalGaraje('editar', id, nombre);
-
 window.buscarPiezasRapido = function(modelo) {
     if (!window.location.href.includes("recambios.html") && !window.location.href.includes("index.html")) {
         window.location.href = `recambios.html?coche=${encodeURIComponent(modelo)}`;
@@ -1143,14 +1130,13 @@ window.buscarPiezasRapido = function(modelo) {
         filtrarPorMiCoche();
     }
 };
-
 window.filtrarPorMiCoche = function() {
     const select = document.getElementById('filtro-garaje');
     if(!select) return;
     
     cocheActual = select.value; 
     paginaActual = 1; 
-    renderizarVista(); 
+    renderizarVista();
 };
 
 // ==========================================
@@ -1166,7 +1152,6 @@ window.cargarMisPedidos = async function() {
         .eq('user_id', usuarioId)
         .neq('estado', 'Pendiente de pago ⏳') 
         .order('fecha', { ascending: false });
-
     if (error) {
         console.error("Error cargando pedidos:", error);
         contenedor.innerHTML = "<p style='color: #e74c3c;'>❌ Error al cargar el historial.</p>";
@@ -1220,19 +1205,17 @@ window.cargarMisPedidos = async function() {
         }
 
         let botonesCliente = '<div style="padding: 15px 20px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px dashed #eee; background: #fff;">';
-        
         if (pedido.estado !== 'Enviado' && pedido.estado !== 'Entregado' && pedido.estado !== 'Cancelado') {
             botonesCliente += `<button onclick="cancelarMiPedido('${pedido.id}')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; box-shadow:0 2px 5px rgba(231,76,60,0.3);">❌ Cancelar Pedido</button>`;
         }
         
         if (pedido.estado === 'Enviado' || pedido.estado === 'Entregado') {
-            const emailTaller = "giljulio9876@gmail.com"; 
+            const emailTaller = "giljulio9876@gmail.com";
             const asunto = encodeURIComponent(`Solicitud de Devolución - Pedido #${pedido.id}`);
             const cuerpo = encodeURIComponent(`Hola Taller La Estación,\n\nQuiero solicitar la devolución del pedido #${pedido.id}.\n\nEl motivo de la devolución es:\n[Escribe aquí tu motivo]\n\n* Entiendo que la pieza no puede mostrar signos de haber sido montada ni manchada de grasa, y debe ir en su embalaje original.\n\nSaludos.`);
             botonesCliente += `<a href="mailto:${emailTaller}?subject=${asunto}&body=${cuerpo}" style="background:#7f8c8d; color:white; text-decoration:none; padding:8px 15px; border-radius:5px; font-weight:bold; display:inline-block; box-shadow:0 2px 5px rgba(127,140,141,0.3);">📦 Solicitar Devolución</a>`;
         }
         botonesCliente += '</div>';
-
         html += `
             <div class="tarjeta-pedido" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
                 <div class="cabecera-pedido" style="background: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
@@ -1288,7 +1271,6 @@ window.enviarPeticionRadar = function() {
 
 window.confirmarPeticionRadar = function(coche, pieza, contacto) {
     let modal = document.getElementById('modal-radar-custom');
-    
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'modal-radar-custom';
@@ -1310,7 +1292,6 @@ window.confirmarPeticionRadar = function(coche, pieza, contacto) {
             </div>
         </div>
     `;
-
     modal.style.display = 'flex';
     setTimeout(() => document.getElementById('caja-modal-radar').style.transform = 'scale(1)', 10);
 
@@ -1324,18 +1305,16 @@ window.cerrarModalRadar = function() {
     const modal = document.getElementById('modal-radar-custom');
     const caja = document.getElementById('caja-modal-radar');
     if(modal && caja) { 
-        caja.style.transform = 'scale(0.9)'; 
+        caja.style.transform = 'scale(0.9)';
         setTimeout(() => modal.style.display = 'none', 150); 
     }
 };
 
 window.ejecutarEnvioRadar = async function(coche, pieza, contacto) {
     mostrarNotificacionFlotante("Buscando proveedores... ⚙️", "#3498db");
-
     const { error } = await clienteSupabase.from('peticiones_piezas').insert([
         { coche: coche, pieza: pieza, contacto: contacto }
     ]);
-
     if (error) {
         console.error("Error al enviar petición:", error);
         mostrarNotificacionFlotante("❌ Hubo un fallo de conexión.", "#e74c3c");
@@ -1358,7 +1337,6 @@ window.cargarPeticionesAdmin = async function() {
         .from('peticiones_piezas')
         .select('*')
         .order('created_at', { ascending: false });
-
     if (error) {
         contenedor.innerHTML = "<p style='color:red;'>Error al cargar: " + error.message + "</p>";
         return;
@@ -1407,7 +1385,6 @@ window.cargarTodosLosPedidosAdmin = async function() {
         .from('pedidos')
         .select('*')
         .order('fecha', { ascending: false });
-
     if (error) {
         contenedor.innerHTML = "<p style='color:red;'>Error: " + error.message + "</p>";
         return;
@@ -1490,7 +1467,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const divCookies = document.createElement('div');
         divCookies.id = 'cartel-cookies';
         divCookies.style.cssText = 'position:fixed; bottom:0; left:0; width:100%; background:#2c3e50; color:white; padding:15px 20px; text-align:center; z-index:99999; box-shadow:0 -5px 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-top: 3px solid #e74c3c;';
-        
         divCookies.innerHTML = `
             <p style="margin:0; font-size:0.95em; line-height:1.4;">
                 <b>¡Aviso de taller! 🛠️</b> Usamos cookies estrictamente necesarias para recordar las piezas de tu cesta y mantener tu garaje seguro. Si sigues navegando, asumimos que te parece bien. 
@@ -1533,11 +1509,11 @@ window.enviarPiezaNube = async function() {
     const marca = document.getElementById('nueva-marca').value.trim();
     const coche = document.getElementById('nueva-coche').value.trim();
     const precio = document.getElementById('nueva-precio').value.trim();
-    const precio_antiguo = document.getElementById('nueva-precio-antiguo').value.trim(); 
+    const precio_antiguo = document.getElementById('nueva-precio-antiguo').value.trim();
     const estado = document.getElementById('nueva-estado').value;
     const stock = parseInt(document.getElementById('nueva-stock').value) || 1;
     const foto = document.getElementById('nueva-foto').value.trim();
-    const galeria = document.getElementById('nueva-galeria').value.trim(); 
+    const galeria = document.getElementById('nueva-galeria').value.trim();
     const destacado = document.getElementById('nueva-destacado').checked; 
 
     if (!titulo || !referencia || !precio) {
@@ -1548,7 +1524,6 @@ window.enviarPiezaNube = async function() {
     const txtO = btn.innerText;
     btn.innerText = "Subiendo... ⏳";
     btn.disabled = true;
-
     const { error } = await clienteSupabase.from('productos').insert([{
         titulo: titulo,
         referencia: referencia,
@@ -1564,7 +1539,6 @@ window.enviarPiezaNube = async function() {
         seccion: 'varios', 
         filtro: 'general'
     }]);
-
     btn.innerText = txtO;
     btn.disabled = false;
 
@@ -1573,7 +1547,6 @@ window.enviarPiezaNube = async function() {
         mostrarNotificacionFlotante("❌ Error al subir: La referencia podría estar repetida o faltan columnas.", "#e74c3c");
     } else {
         mostrarNotificacionFlotante("✅ ¡Pieza subida al catálogo con éxito!", "#27ae60");
-        
         document.getElementById('nueva-titulo').value = '';
         document.getElementById('nueva-referencia').value = '';
         document.getElementById('nueva-foto').value = '';
