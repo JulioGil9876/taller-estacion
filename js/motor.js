@@ -678,8 +678,12 @@ window.ejecutarRecuperacionExclusiva = async function() {
 
     btn.innerText = "Enviando... ⏳";
     btn.disabled = true;
-    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html';
+    
+    // ⚡ TRUCO BLINDADO: Le pegamos la pegatina "?reparando=llave" a la ruta. Supabase no la borrará.
+    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html?reparando=llave';
+    
     const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: rutaCompleta });
+    
     if (error) {
         msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c";
         msg.style.background = "#fadbd8"; msg.style.display = "block";
@@ -841,17 +845,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("📦 Ordenando descarga del catálogo principal...");
     await cargarPiezasDesdeLaNube();
 
-    // ⚡ DETECTOR DE RECUPERACIÓN (SOLO PARA LA PESTAÑA NUEVA DEL EMAIL)
-    let modoRecuperacion = window.location.href.includes('type=recovery') || window.location.hash.includes('type=recovery');
+    // ⚡ DETECTOR DE RECUPERACIÓN BLINDADO (A PRUEBA DE LIMPIEZAS)
+    let modoRecuperacion = window.location.search.includes('reparando=llave') || window.location.hash.includes('type=recovery');
 
-    // 1. Si detectamos que ESTA pestaña viene del correo, abrimos la ventana directamente
+    // Lanzamiento forzoso: Si la URL tiene nuestra pegatina, abrimos la ventana SÍ O SÍ a lo bestia.
     if (modoRecuperacion) {
+        console.log("🔑 Pegatina detectada. Abriendo taller de llaves...");
         setTimeout(() => {
             if (typeof window.mostrarVentanaNuevaPass === "function") {
                 window.mostrarVentanaNuevaPass();
             }
-        }, 800);
+        }, 500);
     }
+
+    clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
+        if (event === 'PASSWORD_RECOVERY') {
+            modoRecuperacion = true;
+            setTimeout(() => {
+                if (typeof window.mostrarVentanaNuevaPass === "function") {
+                    window.mostrarVentanaNuevaPass();
+                }
+            }, 600); 
+        } else if (event === 'SIGNED_IN' && !sessionActiva && !modoRecuperacion) {
+            window.location.reload();
+        } else if (event === 'SIGNED_OUT' && sessionActiva) {
+            window.location.reload();
+        }
+    });
 
     clienteSupabase.auth.onAuthStateChange((event, nuevaSesion) => {
         console.log("📡 Evento de Auth:", event);
