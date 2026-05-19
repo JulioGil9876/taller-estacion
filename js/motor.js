@@ -1231,10 +1231,7 @@ window.cargarMisPedidos = async function() {
         }
         
         if (pedido.estado === 'Enviado' || pedido.estado === 'Entregado') {
-            const emailTaller = "giljulio9876@gmail.com";
-            const asunto = encodeURIComponent(`Solicitud de Devolución - Pedido #${pedido.id}`);
-            const cuerpo = encodeURIComponent(`Hola Taller La Estación,\n\nQuiero solicitar la devolución del pedido #${pedido.id}.\n\nEl motivo de la devolución es:\n[Escribe aquí tu motivo]\n\n* Entiendo que la pieza no puede mostrar signos de haber sido montada ni manchada de grasa, y debe ir en su embalaje original.\n\nSaludos.`);
-            botonesCliente += `<a href="mailto:${emailTaller}?subject=${asunto}&body=${cuerpo}" style="background:#7f8c8d; color:white; text-decoration:none; padding:8px 15px; border-radius:5px; font-weight:bold; display:inline-block; box-shadow:0 2px 5px rgba(127,140,141,0.3);">📦 Solicitar Devolución</a>`;
+            botonesCliente += `<button onclick="solicitarDevolucion('${pedido.id}')" style="background:#7f8c8d; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; display:inline-block; box-shadow:0 2px 5px rgba(127,140,141,0.3); transition:0.2s;">📦 Solicitar Devolución</button>`;
         }
         botonesCliente += '</div>';
         html += `
@@ -1476,6 +1473,64 @@ window.cancelarMiPedido = async function(id) {
         mostrarNotificacionFlotante("❌ Error al cancelar el pedido", "#e74c3c");
     } else {
         mostrarNotificacionFlotante("✅ Pedido cancelado correctamente", "#27ae60");
+        if (typeof cargarMisPedidos === "function") cargarMisPedidos();
+    }
+};
+
+// ==========================================
+// 16.5 SOLICITAR DEVOLUCIÓN (MODO CLIENTE)
+// ==========================================
+window.solicitarDevolucion = function(id) {
+    let modal = document.getElementById('modal-devolucion-custom');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-devolucion-custom';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(5px);';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:450px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3); transform:scale(0.9); transition:0.2s;" id="caja-modal-devolucion">
+            <div style="font-size: 3.5em; margin-bottom: 10px;">📦</div>
+            <h3 style="margin-top:0; color:#2c3e50; font-size:1.6em;">Solicitar Devolución</h3>
+            <p style="color:#636e72; margin-bottom:20px; font-size: 1.05em; line-height: 1.6;">
+                ¿Seguro que quieres tramitar la devolución de este pedido?<br><br>
+                <i style="font-size:0.9em; color:#e74c3c;">Recuerda: La pieza no puede mostrar signos de haber sido montada ni manchada de grasa, y debe ir en su embalaje original.</i>
+            </p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="cerrarModalDevolucion()" style="flex:1; padding:12px; border:none; background:#f1f2f6; color:#2d3436; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; transition:0.2s;">Cancelar</button>
+                <button id="btn-confirmar-devolucion" style="flex:1; padding:12px; border:none; background:#7f8c8d; color:white; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; transition:0.2s; box-shadow:0 4px 10px rgba(127,140,141,0.3);">Sí, devolver</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('caja-modal-devolucion').style.transform = 'scale(1)', 10);
+
+    document.getElementById('btn-confirmar-devolucion').onclick = () => {
+        cerrarModalDevolucion();
+        ejecutarDevolucion(id);
+    };
+};
+
+window.cerrarModalDevolucion = function() {
+    const modal = document.getElementById('modal-devolucion-custom');
+    const caja = document.getElementById('caja-modal-devolucion');
+    if(modal && caja) { 
+        caja.style.transform = 'scale(0.9)';
+        setTimeout(() => modal.style.display = 'none', 150); 
+    }
+};
+
+window.ejecutarDevolucion = async function(id) {
+    mostrarNotificacionFlotante("Tramitando solicitud... ⏳", "#3498db");
+    const { error } = await clienteSupabase
+        .from('pedidos')
+        .update({ estado: 'Devolución Solicitada 🔄' })
+        .eq('id', id);
+
+    if (error) {
+        mostrarNotificacionFlotante("❌ Error de conexión.", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante("✅ ¡Taller avisado! Prepararemos el reembolso.", "#27ae60");
         if (typeof cargarMisPedidos === "function") cargarMisPedidos();
     }
 };
