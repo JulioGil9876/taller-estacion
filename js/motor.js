@@ -1413,33 +1413,78 @@ window.cargarTodosLosPedidosAdmin = async function() {
         const items = JSON.parse(p.items || '[]');
         const fecha = new Date(p.fecha).toLocaleString();
         
-        let colorEstado = "#f39c12"; 
+        let colorEstado = "#f39c12"; // Naranja por defecto (Pendiente)
         if(p.estado === 'Enviado') colorEstado = "#3498db";
         if(p.estado === 'Entregado') colorEstado = "#27ae60";
         if(p.estado === 'Cancelado') colorEstado = "#e74c3c";
+        if(p.estado === 'Devolución Solicitada 🔄') colorEstado = "#e67e22";
+        if(p.estado === 'Esperando Paquete 📦') colorEstado = "#8e44ad";
+        if(p.estado === 'Reembolsado 💸') colorEstado = "#2c3e50";
+
+        // ⚡ BOTONES INTELIGENTES SEGÚN EL ESTADO
+        let botonesAdmin = '';
+        if (p.estado === 'Devolución Solicitada 🔄') {
+            botonesAdmin = `
+                <div style="width:100%; padding:10px; background:#fffbe8; border:1px solid #f1c40f; border-radius:6px; margin-bottom:10px;">
+                    <span style="color:#d35400; font-weight:bold;">⚠️ El cliente quiere devolver esto.</span>
+                </div>
+                <button onclick="cambiarEstadoPedido('${p.id}', 'Esperando Paquete 📦', '${p.user_email}')" style="background:#8e44ad; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Aceptar Devolución (Pedir envío)</button>
+            `;
+        } else if (p.estado === 'Esperando Paquete 📦') {
+            botonesAdmin = `
+                <button onclick="cambiarEstadoPedido('${p.id}', 'Reembolsado 💸')" style="background:#2c3e50; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">✅ Pieza Recibida -> Marcar Reembolsado</button>
+            `;
+        } else {
+            botonesAdmin = `
+                <button onclick="cambiarEstadoPedido('${p.id}', 'Enviado')" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🚚 Marcar Enviado</button>
+                <button onclick="cambiarEstadoPedido('${p.id}', 'Entregado')" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✅ Entregado</button>
+                <button onclick="cambiarEstadoPedido('${p.id}', 'Cancelado')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Cancelar</button>
+            `;
+        }
 
         html += `
-            <div style="background:white; border:1px solid #ddd; padding:20px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div style="background:white; border:1px solid #ddd; padding:20px; border-radius:10px; margin-bottom:15px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed #eee; padding-bottom:10px;">
-                    <span><b>Pedido #${p.id.toString().slice(-5)}</b> - ${fecha}</span>
+                    <span><b>Pedido #${p.id.toString().slice(-5).toUpperCase()}</b> - ${fecha}</span>
                     <span style="background:${colorEstado}; color:white; padding:4px 10px; border-radius:15px; font-size:0.85em; font-weight:bold;">${p.estado}</span>
                 </div>
                 <div style="margin-bottom:15px;">
-                    <p style="margin:5px 0;">👤 <b>Cliente:</b> ${p.user_email}</p>
-                    <p style="margin:5px 0;">📍 <b>Dirección:</b> ${p.direccion}</p>
+                    <p style="margin:5px 0;">👤 <b>Cliente:</b> <a href="mailto:${p.user_email}" style="color:#3498db;">${p.user_email}</a></p>
+                    <p style="margin:5px 0;">📍 <b>Dirección:</b> ${p.direccion || 'Sin dirección'}</p>
                     <p style="margin:5px 0;">🛒 <b>Piezas:</b> ${items.map(i => i.titulo).join(', ')}</p>
-                    <p style="margin:5px 0; font-size:1.2em; color:#2c3e50;">💰 <b>Total: ${p.total.toFixed(2)}€</b></p>
+                    <p style="margin:5px 0; font-size:1.2em; color:#2c3e50;">💰 <b>Total: ${Number(p.total).toFixed(2)}€</b></p>
                 </div>
                 
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button onclick="cambiarEstadoPedido('${p.id}', 'Enviado')" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🚚 Marcar Enviado</button>
-                    <button onclick="cambiarEstadoPedido('${p.id}', 'Entregado')" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✅ Entregado</button>
-                    <button onclick="cambiarEstadoPedido('${p.id}', 'Cancelado')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Cancelar y Avisar</button>
+                    ${botonesAdmin}
                 </div>
             </div>
         `;
     });
     contenedor.innerHTML = html || "<p>No hay ventas registradas aún.</p>";
+};
+
+window.cambiarEstadoPedido = async function(id, nuevoEstado, emailCliente = null) {
+    if(!confirm(`¿Seguro que quieres cambiar el pedido a "${nuevoEstado}"?`)) return;
+
+    const { error } = await clienteSupabase
+        .from('pedidos')
+        .update({ estado: nuevoEstado })
+        .eq('id', id);
+
+    if (error) {
+        mostrarNotificacionFlotante("❌ Error al actualizar estado", "#e74c3c");
+    } else {
+        mostrarNotificacionFlotante(`✅ Pedido actualizado a ${nuevoEstado}`, "#27ae60");
+        window.cargarTodosLosPedidosAdmin();
+        
+        // Magia para la presentación: Si aceptamos la devolución, te abre el correo pre-rellenado para el cliente
+        if (nuevoEstado === 'Esperando Paquete 📦' && emailCliente) {
+            const asunto = encodeURIComponent(`Instrucciones de Devolución - Pedido #${id.toString().slice(-5).toUpperCase()}`);
+            const cuerpo = encodeURIComponent(`Hola,\n\nHemos aceptado tu solicitud de devolución.\n\nPor favor, empaqueta la pieza en su caja original (sin manchas de grasa) y envíala a:\n\nTaller La Estación\nCalle del Motor Nº1\n28000, Madrid\n\nEn cuanto recibamos y revisemos la pieza, te ingresaremos el dinero.\n\nUn saludo.`);
+            window.location.href = `mailto:${emailCliente}?subject=${asunto}&body=${cuerpo}`;
+        }
+    }
 };
 
 window.cambiarEstadoPedido = async function(id, nuevoEstado) {
