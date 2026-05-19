@@ -676,17 +676,16 @@ window.ejecutarRecuperacionExclusiva = async function() {
         msg.innerText = "⚠️ Por favor, escribe un email válido."; msg.style.color = "orange"; msg.style.background = "#fff3cd"; msg.style.display = "block"; return;
     }
 
-    btn.innerText = "Enviando... ⏳";
-    btn.disabled = true;
+    btn.innerText = "Enviando... ⏳"; btn.disabled = true;
     
-    // ⚡ TRUCO BLINDADO: Le pegamos la pegatina "?reparando=llave" a la ruta. Supabase no la borrará.
-    const rutaCompleta = window.location.origin + window.location.pathname.split('index.html')[0] + 'index.html?reparando=llave';
+    // ⚡ GPS ARREGLADO: Calcula la ruta perfecta desde cualquier página del taller
+    let rutaBase = window.location.href.split('?')[0].split('#')[0]; 
+    let rutaCompleta = rutaBase.substring(0, rutaBase.lastIndexOf('/')) + '/index.html?reparando=llave';
     
     const { error } = await clienteSupabase.auth.resetPasswordForEmail(email, { redirectTo: rutaCompleta });
-    
+
     if (error) {
-        msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c";
-        msg.style.background = "#fadbd8"; msg.style.display = "block";
+        msg.innerText = "❌ Error: " + error.message; msg.style.color = "#e74c3c"; msg.style.background = "#fadbd8"; msg.style.display = "block";
         btn.innerText = 'Intentar de nuevo'; btn.disabled = false;
     } else {
         msg.innerHTML = "✅ <b>¡Enlace enviado!</b><br><br>Pincha en el link de tu correo. <br>Esta pestaña ya no hace falta, <u>puedes cerrarla</u> o esperar a que se abra la nueva.";
