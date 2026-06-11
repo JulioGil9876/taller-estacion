@@ -5,7 +5,7 @@ const supabaseUrl = 'https://zfhhlqyxekrkczawzgsd.supabase.co';
 const supabaseKey = 'sb_publishable_8mz5NZDUm7u_W95s3JKzoQ_EAVEKpVg'; 
 
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: true, autoRefreshToken: true }
+    auth: { persistSession: false, autoRefreshToken: false }
 });
 
 let inventarioNube = [];
